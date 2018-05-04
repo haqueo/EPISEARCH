@@ -1,5 +1,6 @@
 #include <iostream>
-#include "fullSearch.h"
+
+#include "entropy/fullSearch.h"
 using namespace std;
 
 int main() {
