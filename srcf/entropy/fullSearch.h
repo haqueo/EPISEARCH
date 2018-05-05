@@ -10,6 +10,7 @@
 
 
 double entropy(const int *d, int nsamples, int nvars, int c, bool *v);
+double entropyFast(const int *d, int nsamples, int nvars, int c, bool*v);
 
 
 #endif /* FULLSEARCH_H_ */

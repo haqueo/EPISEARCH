@@ -67,6 +67,39 @@ double entropy_shrink(std::map< std::vector<int> ,int > frequencies, int nb_samp
       }
 }
 
+double entropyFast(const int *d, int nsamples, int nvars, int c, bool*v){
+
+// H(d) using estimator c
+	std::map< std::vector<int> ,int > freq;
+	std::vector<int> sel;
+	int nsamples_ok = 0;
+	double H = 0;
+	for(int s = 0; s < nsamples; ++s) {
+
+
+
+		sel.clear();
+		for(int i = 0; i < nvars; ++i) {
+			if(v[i]){
+					sel.push_back(d[s+i*nsamples]);
+			}
+		}
+
+		freq[sel]++;
+		nsamples_ok++;
+
+	}
+	if( c == 0 ) //empirical
+		H = entropy_empirical(freq,nsamples_ok);
+	else if( c == 1 ) //miller-madow
+		H = entropy_miller_madow(freq,nsamples_ok);
+	else if( c == 2 ) //dirichlet Schurmann-Grassberger
+		H = entropy_dirichlet(freq,nsamples_ok, 1/freq.size());
+	else if( c == 3 ) // shrink
+		H = entropy_shrink(freq,nsamples_ok);
+	return H;
+}
+
 double entropy(const int *d, int nsamples, int nvars, int c, bool *v) {
 // H(d) using estimator c
 	std::map< std::vector<int> ,int > freq;

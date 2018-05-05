@@ -13,6 +13,7 @@ int main() {
 	bool v[2] = {true,true};
 
 	double H = entropy(d,nsamples,nvars,c,v);
+	double fastH = entropy(d,nsamples,nvars,c,v);
 
 	cout << "Entropy is " << H;
 	return 0;
