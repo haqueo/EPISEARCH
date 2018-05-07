@@ -1,6 +1,7 @@
 //============================================================================
 // Name        : fullSearch.cpp
-// Author      : Omar Haque
+// Author      : Omar Haque, but almost all of the entropy code is by Patrick E.
+// 				 Meyer found in the infotheo package.
 // Version     :
 // Copyright   : Your copyright notice
 // Description : Hello World in C++, Ansi-style
@@ -75,8 +76,6 @@ double entropyFast(const int *d, int nsamples, int nvars, int c, bool*v){
 	int nsamples_ok = 0;
 	double H = 0;
 	for(int s = 0; s < nsamples; ++s) {
-
-
 
 		sel.clear();
 		for(int i = 0; i < nvars; ++i) {
@@ -190,4 +189,108 @@ double interaction(const int *d, int nsamples, int nvars, int c) {
 	return sum;
 }
 
+int *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl, const int *d,
+		int nsamples, int nvars, int c,double Hcl, double Hp1cl){
+int* final = new double[10];
+bool selTemp[10] = {false}; // TODO: need to change this to a const int later
+
+////// calculation of base entropies and joint entropies
+
+// H(P1)
+// this is entropyp1
+
+// H(P1,C)
+// this is entropyp1cl
+
+// H(P2)
+// this is entropyp2
+
+// H(P2,C)
+selTemp[p2] = true;
+selTemp[cl] = true;
+double Hp2cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P3,C)
+selTemp[p2] = false;
+selTemp[p3] = true;
+double Hp3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P3)
+selTemp[cl] = false;
+double Hp3 = entropyFast(d,nsamples, nvars,0,selTemp);
+
+// H(P1,P2)
+selTemp[p3] = false;
+selTemp[p2] = true;
+selTemp[p1] = true;
+double Hp1p2 = entropyFast(d,nsamples, nvars,0,selTemp);
+
+//H(P1,P2,C)
+selTemp[cl] = true;
+double Hp1p2cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P1,P3)
+selTemp[cl] = false;
+selTemp[p2] = false;
+selTemp[p3] = true;
+double Hp1p3 = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P1,P3,C)
+selTemp[cl] = true;
+double Hp1p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P2,P3)
+selTemp[cl] = false;
+selTemp[p1] = false;
+selTemp[p2] = true;
+double Hp2p3 = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P2,P3,cl)
+selTemp[cl] = true;
+double Hp2p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P1,P2,P3)
+selTemp[p1] = true;
+selTemp[cl] = false;
+double Hp1p2p3 = entropyFast(d,nsamples,nvars,0,selTemp);
+
+// H(P1,P2,P3,C)
+selTemp[cl] = true;
+double Hp1p2p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+///////////// calculation of compound measures
+
+double Ip1p2p3 = Hcl - Hp1p2p3cl + Hp1p2p3;
+double Ip1 = Hcl - Hp1cl + Hp1;
+double Ip2 = Hcl - Hp2cl + Hp2;
+double Ip3 = Hcl - Hp3cl + Hp3;
+double Ip1p2 = Hcl - Hp1p2cl + Hp1p2;
+double Ip1p3 = Hcl - Hp1p3cl + Hp1p3;
+double Ip2p3 = Hcl - Hp2p3cl + Hp2p3;
+double IGp1p2 = Ip1p2 - Ip1 - Ip2;
+double IGp1p3 = Ip1p3 - Ip1 - Ip3;
+double IGp2p3 = Ip2p3 - Ip2 - Ip3;
+
+///////////// calculation of VI
+double VIp1p2 = 2*Hp1p2 - Hp1 - Hp2;
+double VIp1p3 = 2*Hp1p3 - Hp1 - Hp3;
+double VIp2p3 = 2*Hp2p3 - Hp2 - Hp3;
+double VIp1cl = 2*Hp1cl - Hp1 - Hcl;
+double VIp2cl = 2*Hp2cl - Hp2 - Hcl;
+double VIp3cl = 2*Hp3cl - Hp3 - Hcl;
+
+
+double IG_strict = Ip1p2p3 - max(IGp1p2,0.0) - max(IGp1p3,0.0) - max(IGp2p3,0.0) - Ip1 - Ip2 - Ip3;
+double IG_alt = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3 - Ip1 - Ip2 - Ip3;
+double IG_new = Ip1p2p3;
+double VIp = VIp1p2 + VIp1p3 + VIp2p3;
+double VIc = VIp1cl + VIp2cl + VIp3cl;
+
+final[0] = IG_strict;
+final[1] = IG_alt;
+final[2] = IG_new;
+final[3] = VIp;
+final[4] = VIc;
+	return final;
+}
 
