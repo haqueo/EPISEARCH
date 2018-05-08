@@ -189,9 +189,9 @@ double interaction(const int *d, int nsamples, int nvars, int c) {
 	return sum;
 }
 
-int *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl, const int *d,
+double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl, const int *d,
 		int nsamples, int nvars, int c,double Hcl, double Hp1cl){
-int* final = new double[10];
+double* final = new double[10];
 bool selTemp[10] = {false}; // TODO: need to change this to a const int later
 
 ////// calculation of base entropies and joint entropies
