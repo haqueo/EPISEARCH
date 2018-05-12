@@ -191,7 +191,7 @@ double interaction(const int *d, int nsamples, int nvars, int c) {
 
 double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl, const int *d,
 		int nsamples, int nvars, int c,double Hcl, double Hp1cl){
-double* final = new double[10];
+static double final[5];
 bool selTemp[10] = {false}; // TODO: need to change this to a const int later
 
 ////// calculation of base entropies and joint entropies
@@ -259,7 +259,6 @@ selTemp[cl] = true;
 double Hp1p2p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
 
 ///////////// calculation of compound measures
-
 double Ip1p2p3 = Hcl - Hp1p2p3cl + Hp1p2p3;
 double Ip1 = Hcl - Hp1cl + Hp1;
 double Ip2 = Hcl - Hp2cl + Hp2;
