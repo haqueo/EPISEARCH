@@ -293,3 +293,23 @@ final[4] = VIc;
 	return final;
 }
 
+
+
+int* readData(std::string filename, int nrows, int nvars){
+	/*
+	 * Format data should be: nrows x nvars csv of integers 0,1 (minor or major alleles)
+	 * the Class type is the last of these column included in nvars. So its index is
+	 * nvars-1, i.e. the last column.
+	 */
+
+	const int datasize = nvars*nrows;
+    int data[datasize];
+    /*
+    *ifstream input("file.txt");
+
+    *for (int i = 0; i < datasize; i++) {
+     *   input >> data[i];
+    }
+    */
+	return data;
+}
