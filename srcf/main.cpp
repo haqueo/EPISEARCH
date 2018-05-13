@@ -1,7 +1,20 @@
 #include <iostream>
 
 #include "entropy/fullSearch.h"
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <iostream>
+//using namespace std;
+#include <algorithm>
+#include <ctime>
+#include <cmath>
+#include <vector>
+#include <map>
+#include <fstream>
 using namespace std;
+
 
 int main() {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
@@ -16,6 +29,8 @@ int main() {
 	double fastH = entropy(d,nsamples,nvars,c,v);
 
 	cout << "Entropy is " << H;
+	std::vector<int> readArray;
+	readArray = readData("/data/prjebint.txt", 469, 4526);
 	return 0;
 
 }

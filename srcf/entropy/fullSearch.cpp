@@ -14,6 +14,7 @@
 #include <cmath>
 #include <vector>
 #include <map>
+#include <fstream>
 using namespace std;
 
 
@@ -304,15 +305,25 @@ std::vector<int> readData(std::string filename, int nrows, int nvars){
 
 	const int datasize = nvars*nrows;
 	static std::vector<int> data(datasize);
+	static std::vector<int> dataReal(datasize);
 
-    /*
-    *ifstream input("file.txt");
+    std::fstream myfile(filename, std::ios_base::in);
 
-    *for (int i = 0; i < datasize; i++) {
-     *   input >> data[i];
+    int a;
+
+    for(int i =0; i< datasize;i++){
+    	myfile >> a;
+    	data[i] = a;
     }
-    */
 
-	return data;
+    for(int s = 0; s < nrows; s++){
+    	for (int i = 0; i<nvars;i++){
+    		dataReal[s+i*nrows] = data[i+s*nvars];
+    	}
+
+    }
+
+    // this reads in the data as is. I actually need to transpose it.
+	return dataReal;
 
 }
