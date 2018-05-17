@@ -69,20 +69,24 @@ double entropy_shrink(std::map< std::vector<int> ,int > frequencies, int nb_samp
       }
 }
 
-double entropyFast(const int *d, int nsamples, int nvars, int c, bool*v){
+double entropyFast(const int *d, int nsamples, int nvars, int c,int *vnew){
 
 // H(d) using estimator c
 	std::map< std::vector<int> ,int > freq;
 	std::vector<int> sel;
+	int j;
 	int nsamples_ok = 0;
 	double H = 0;
 	for(int s = 0; s < nsamples; ++s) {
 
 		sel.clear();
-		for(int i = 0; i < nvars; ++i) {
-			if(v[i]){
-					sel.push_back(d[s+i*nsamples]);
+
+		for(int i = 0; i < 4; i++){
+			j = vnew[i];
+			if (j != -1){
+				sel.push_back(d[s+j*nsamples]);
 			}
+
 		}
 
 		freq[sel]++;
@@ -112,7 +116,7 @@ double entropy(const int *d, int nsamples, int nvars, int c, bool *v) {
 		sel.clear();
 		for(int i = 0; i < nvars; ++i) {
 			if(v[i]){
-				if(d[s+i*nsamples]!=500) // change this later
+				if(d[s+i*nsamples]!=500) // change this later TODO
 					sel.push_back(d[s+i*nsamples]);
 				else
 					ok = false;
@@ -194,6 +198,7 @@ double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl
 		int nsamples, int nvars, int c,double Hcl, double Hp1cl){
 static double final[5];
 bool selTemp[101] = {false}; // TODO: need to change this to a const int later
+int selTempNew[4] = {-1,-1,-1,-1};
 
 ////// calculation of base entropies and joint entropies
 
@@ -209,55 +214,83 @@ bool selTemp[101] = {false}; // TODO: need to change this to a const int later
 // H(P2,C)
 selTemp[p2] = true;
 selTemp[cl] = true;
-double Hp2cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[0] = p2;
+selTempNew[1] = cl;
+double Hp2cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P3,C)
 selTemp[p2] = false;
 selTemp[p3] = true;
-double Hp3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[0] = p3;
+double Hp3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P3)
 selTemp[cl] = false;
-double Hp3 = entropyFast(d,nsamples, nvars,0,selTemp);
+
+
+selTempNew[1] = -1;
+double Hp3 = entropyFast(d,nsamples, nvars,0,selTempNew);
 
 // H(P1,P2)
 selTemp[p3] = false;
 selTemp[p2] = true;
 selTemp[p1] = true;
-double Hp1p2 = entropyFast(d,nsamples, nvars,0,selTemp);
+
+selTempNew[0] = p1;
+selTempNew[1] = p2;
+double Hp1p2 = entropyFast(d,nsamples, nvars,0,selTempNew);
 
 //H(P1,P2,C)
 selTemp[cl] = true;
-double Hp1p2cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[2] = cl;
+double Hp1p2cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P1,P3)
 selTemp[cl] = false;
 selTemp[p2] = false;
 selTemp[p3] = true;
-double Hp1p3 = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[2] = -1;
+selTempNew[1] = p3;
+
+double Hp1p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P1,P3,C)
 selTemp[cl] = true;
-double Hp1p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[2] = cl;
+double Hp1p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P2,P3)
 selTemp[cl] = false;
 selTemp[p1] = false;
 selTemp[p2] = true;
-double Hp2p3 = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[0] = p2;
+selTempNew[2] = -1;
+
+double Hp2p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P2,P3,cl)
 selTemp[cl] = true;
-double Hp2p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+selTempNew[2] = cl;
+double Hp2p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P1,P2,P3)
 selTemp[p1] = true;
 selTemp[cl] = false;
-double Hp1p2p3 = entropyFast(d,nsamples,nvars,0,selTemp);
+
+selTempNew[2] = p1;
+
+double Hp1p2p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 // H(P1,P2,P3,C)
 selTemp[cl] = true;
-double Hp1p2p3cl = entropyFast(d,nsamples,nvars,0,selTemp);
+selTempNew[3] = cl;
+double Hp1p2p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
 ///////////// calculation of compound measures
 double Ip1p2p3 = Hcl - Hp1p2p3cl + Hp1p2p3;

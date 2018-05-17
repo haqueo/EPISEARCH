@@ -29,6 +29,10 @@ int main() {
 	double Hcl = entropy(p,nsamples,nvars,c,v);
 	v[100] = false;
 
+	ofstream myfile ("/Users/Omar/Documents/Year4/M4R/fullSearch/output/prjebintTESToutput/output.txt");
+
+	if (myfile.is_open()){
+
 	for (int i = 0; i < 100-2;i++){
 		v[i] = true;
 		double Hp1 = entropy(p,nsamples,nvars,c,v); // this is 0??
@@ -47,13 +51,17 @@ int main() {
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, 100, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
-				cout << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
 						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
-						"	"<<*(measureArray+4) << "\n";
+						"	"<< *(measureArray+4) << "\n";
 			}
 		}
 	}
 
+	myfile.close();
+	} else {
+		cout << "Unable to open file";
+	}
 //	myfile.close();
 //
 
