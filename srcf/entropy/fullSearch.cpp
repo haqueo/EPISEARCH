@@ -313,7 +313,7 @@ std::vector<int> readData(std::string filename, int nrows, int nvars){
 	 * nvars-1, i.e. the last column.
 	 *
 	 *
-	 * Output: the data in a 1d std::vector, arranged by columns first. So c1T, c2T,...,cNT
+	 * Output: the data in a 1d std::vector, arranged by columns first. So c1^T, c2^T,...,cN^T
 	 */
 
 	const int datasize = nvars*nrows;
@@ -348,7 +348,6 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 	const int* p = d.data();
 
-	//ofstream myfile ("/Users/Omar/Documents/Year4/M4R/fullSearch/output/prjebintTESToutput/output.txt");
 	int v[4] = {-1,-1,-1,-1};
 	v[0] = nvars-1;
 
@@ -361,7 +360,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 	for (int i = 0; i < nvars-3;i++){
 		v[0] = i;
-		double Hp1 = entropyFast(p,nsamples,nvars,c,v); // this is 0??
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
 		v[1] = nvars-1;
 		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
 
