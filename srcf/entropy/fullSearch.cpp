@@ -391,3 +391,69 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 
 }
+
+void runFullSearchIndexes(std::string filename, std::string filenameIndexes,std::string outputFilename, int nsamples, int nvars,
+		int c = 0, int istart, int iend, int jstart, int jend,int kstart, int kend){
+
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
+
+	const int* p = d.data();
+
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
+
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
+
+	ofstream myfile (outputFilename);
+
+
+
+
+
+	// for (line in indexes)_
+
+
+
+
+
+
+
+
+	if (myfile.is_open()){
+
+	for (int i = istart; i < iend;i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		for (int j = i+1;j < nvars-2;j++){
+
+			v[0] = j;
+			double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+			v[0] = -1;
+
+			for(int k = j+1; k < nvars-1; k++){
+				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+						nsamples, nvars, c, Hcl, Hp1cl);
+
+				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
+						"	"<< *(measureArray+4) << "\n";
+			}
+		}
+	}
+
+	myfile.close();
+	} else {
+		cout << "Unable to open file";
+	}
+
+
+}
+
