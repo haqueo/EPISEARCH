@@ -36,8 +36,7 @@ def find_indices(N,m):
                                 # so (triangle_index,N-2-j,N-2-j + 1 + k)
                                 
                                 
-                                print("index found")
-                                print((triangle_index,N-2-j,N-2-j + 1 + k))
+
                                 m = m + m_orig
                                 
         
@@ -45,8 +44,8 @@ def find_indices(N,m):
 
 
 if __name__ == "__main__":
-    N = 100
-    m = 9
+    N = 5000
+    m = 200000
     
 
     find_indices(N,m)

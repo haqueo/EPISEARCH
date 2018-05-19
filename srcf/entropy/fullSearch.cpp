@@ -392,8 +392,9 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 }
 
-void runFullSearchIndexes(std::string filename, std::string filenameIndexes,std::string outputFilename, int nsamples, int nvars,
-		int c = 0, int istart, int iend, int jstart, int jend,int kstart, int kend){
+void runFullSearchIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, int istart, int iend, int jstart, int jend,int kstart, int kend){
+
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -408,22 +409,14 @@ void runFullSearchIndexes(std::string filename, std::string filenameIndexes,std:
 
 	ofstream myfile (outputFilename);
 
-
-
-
-
-	// for (line in indexes)_
-
-
-
-
-
-
-
+	bool Done = false;
 
 	if (myfile.is_open()){
 
-	for (int i = istart; i < iend;i++){
+	int jstartreal;
+	int kstartreal;
+
+	for (int i = istart; !Done; i++){
 		v[0] = i;
 		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
 		v[1] = nvars-1;
@@ -432,19 +425,34 @@ void runFullSearchIndexes(std::string filename, std::string filenameIndexes,std:
 		v[0] = -1;
 		v[1] = -1;
 
-		for (int j = i+1;j < nvars-2;j++){
+		if (i == istart){
+			jstartreal = jstart;
+		} else {
+			jstartreal = i+1;
+		}
+
+
+		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
 
 			v[0] = j;
 			double Hp2 = entropyFast(p,nsamples,nvars,c,v);
 			v[0] = -1;
 
-			for(int k = j+1; k < nvars-1; k++){
+			if (j == jstart){
+				kstartreal = kstart;
+			} else {
+				kstartreal = j+1;
+			}
+
+			for(int k = kstartreal; (k < nvars-1) && !Done; k++){
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
 				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
 						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
 						"	"<< *(measureArray+4) << "\n";
+
+				Done = (i >= iend) && (j >= jend) && (k >= kend);
 			}
 		}
 	}

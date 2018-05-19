@@ -87,7 +87,9 @@ int main(int argc, char* argv[]) {
 
 	// end
 
-	 runFullSearch(inputfile, outputfile, nsamples, nvars, 0);
+	 //runFullSearch(inputfile, outputfile, nsamples, nvars, 0);
+	std::string outputtestersubset = "/Users/Omar/Documents/Year4/M4R/fullSearch/output/outputtestersubset.txt";
+	runFullSearchIndexes(inputfile,outputtestersubset,nsamples,nvars,0,12,61,30,75,41,97);
 
 	return 0;
 
