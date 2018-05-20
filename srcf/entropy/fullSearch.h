@@ -6,6 +6,7 @@
  */
 #include <string>
 #include <iostream>
+#include <vector>
 #ifndef FULLSEARCH_H_
 #define FULLSEARCH_H_
 
