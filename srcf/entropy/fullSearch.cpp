@@ -354,10 +354,10 @@ std::vector<int> readIndices(std::string filename, int n){
    for(int i = 0; i < n; ++i){
 	   std::getline(infile, s);
    }
-   std::getline(infile,s); // s is now the n'th line
-   cout << "s is" << s << std::endl;
+   // s is now the n'th line
+
    std::replace( s.begin(), s.end(), ',', ' ' );
-   cout << "s is" << s << std::endl;
+
    stringstream ss(s);
 
    copy(istream_iterator<int>(ss), istream_iterator<int>(), back_inserter(indexes));
