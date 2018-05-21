@@ -51,7 +51,7 @@ def find_indices(N,m):
     return 0
 
 if __name__ == "__main__":
-    N = 5000
-    m = 2100000
+    N = 100
+    m = 20
     
     find_indices(N,m)

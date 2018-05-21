@@ -201,109 +201,109 @@ double interaction(const int *d, int nsamples, int nvars, int c) {
 
 double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl, const int *d,
 		int nsamples, int nvars, int c,double Hcl, double Hp1cl){
-static double final[5];
-int selTempNew[4] = {-1,-1,-1,-1};
+	static double final[5];
+	int selTempNew[4] = {-1,-1,-1,-1};
 
-////// calculation of base entropies and joint entropies
+	////// calculation of base entropies and joint entropies
 
-// H(P1)
-// this is entropyp1
+	// H(P1)
+	// this is entropyp1
 
-// H(P1,C)
-// this is entropyp1cl
+	// H(P1,C)
+	// this is entropyp1cl
 
-// H(P2)
-// this is entropyp2
+	// H(P2)
+	// this is entropyp2
 
-// H(P2,C)
-selTempNew[0] = p2;
-selTempNew[1] = cl;
-double Hp2cl = entropyFast(d,nsamples,nvars,0,selTempNew);
+	// H(P2,C)
+	selTempNew[0] = p2;
+	selTempNew[1] = cl;
+	double Hp2cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P3,C)
+	// H(P3,C)
 
-selTempNew[0] = p3;
-double Hp3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
+	selTempNew[0] = p3;
+	double Hp3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P3)
+	// H(P3)
 
-selTempNew[1] = -1;
-double Hp3 = entropyFast(d,nsamples, nvars,0,selTempNew);
+	selTempNew[1] = -1;
+	double Hp3 = entropyFast(d,nsamples, nvars,0,selTempNew);
 
-// H(P1,P2)
+	// H(P1,P2)
 
-selTempNew[0] = p1;
-selTempNew[1] = p2;
-double Hp1p2 = entropyFast(d,nsamples, nvars,0,selTempNew);
+	selTempNew[0] = p1;
+	selTempNew[1] = p2;
+	double Hp1p2 = entropyFast(d,nsamples, nvars,0,selTempNew);
 
-//H(P1,P2,C)
+	//H(P1,P2,C)
 
-selTempNew[2] = cl;
-double Hp1p2cl = entropyFast(d,nsamples,nvars,0,selTempNew);
+	selTempNew[2] = cl;
+	double Hp1p2cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P1,P3)
+	// H(P1,P3)
 
-selTempNew[2] = -1;
-selTempNew[1] = p3;
+	selTempNew[2] = -1;
+	selTempNew[1] = p3;
 
-double Hp1p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
+	double Hp1p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P1,P3,C)
+	// H(P1,P3,C)
 
-selTempNew[2] = cl;
-double Hp1p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
+	selTempNew[2] = cl;
+	double Hp1p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P2,P3)
-selTempNew[0] = p2;
-selTempNew[2] = -1;
+	// H(P2,P3)
+	selTempNew[0] = p2;
+	selTempNew[2] = -1;
 
-double Hp2p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
+	double Hp2p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P2,P3,cl)
-selTempNew[2] = cl;
-double Hp2p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
+	// H(P2,P3,cl)
+	selTempNew[2] = cl;
+	double Hp2p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P1,P2,P3)
-selTempNew[2] = p1;
+	// H(P1,P2,P3)
+	selTempNew[2] = p1;
 
-double Hp1p2p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
+	double Hp1p2p3 = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-// H(P1,P2,P3,C)
-selTempNew[3] = cl;
-double Hp1p2p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
+	// H(P1,P2,P3,C)
+	selTempNew[3] = cl;
+	double Hp1p2p3cl = entropyFast(d,nsamples,nvars,0,selTempNew);
 
-///////////// calculation of compound measures
-double Ip1p2p3 = Hcl - Hp1p2p3cl + Hp1p2p3;
-double Ip1 = Hcl - Hp1cl + Hp1;
-double Ip2 = Hcl - Hp2cl + Hp2;
-double Ip3 = Hcl - Hp3cl + Hp3;
-double Ip1p2 = Hcl - Hp1p2cl + Hp1p2;
-double Ip1p3 = Hcl - Hp1p3cl + Hp1p3;
-double Ip2p3 = Hcl - Hp2p3cl + Hp2p3;
-double IGp1p2 = Ip1p2 - Ip1 - Ip2;
-double IGp1p3 = Ip1p3 - Ip1 - Ip3;
-double IGp2p3 = Ip2p3 - Ip2 - Ip3;
+	///////////// calculation of compound measures
+	double Ip1p2p3 = Hcl - Hp1p2p3cl + Hp1p2p3;
+	double Ip1 = Hcl - Hp1cl + Hp1;
+	double Ip2 = Hcl - Hp2cl + Hp2;
+	double Ip3 = Hcl - Hp3cl + Hp3;
+	double Ip1p2 = Hcl - Hp1p2cl + Hp1p2;
+	double Ip1p3 = Hcl - Hp1p3cl + Hp1p3;
+	double Ip2p3 = Hcl - Hp2p3cl + Hp2p3;
+	double IGp1p2 = Ip1p2 - Ip1 - Ip2;
+	double IGp1p3 = Ip1p3 - Ip1 - Ip3;
+	double IGp2p3 = Ip2p3 - Ip2 - Ip3;
 
-///////////// calculation of VI
-double VIp1p2 = 2*Hp1p2 - Hp1 - Hp2;
-double VIp1p3 = 2*Hp1p3 - Hp1 - Hp3;
-double VIp2p3 = 2*Hp2p3 - Hp2 - Hp3;
-double VIp1cl = 2*Hp1cl - Hp1 - Hcl;
-double VIp2cl = 2*Hp2cl - Hp2 - Hcl;
-double VIp3cl = 2*Hp3cl - Hp3 - Hcl;
+	///////////// calculation of VI
+	double VIp1p2 = 2*Hp1p2 - Hp1 - Hp2;
+	double VIp1p3 = 2*Hp1p3 - Hp1 - Hp3;
+	double VIp2p3 = 2*Hp2p3 - Hp2 - Hp3;
+	double VIp1cl = 2*Hp1cl - Hp1 - Hcl;
+	double VIp2cl = 2*Hp2cl - Hp2 - Hcl;
+	double VIp3cl = 2*Hp3cl - Hp3 - Hcl;
 
 
-double IG_strict = Ip1p2p3 - max(IGp1p2,0.0) - max(IGp1p3,0.0) - max(IGp2p3,0.0) - Ip1 - Ip2 - Ip3;
-double IG_alt = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3 - Ip1 - Ip2 - Ip3;
-double IG_new = Ip1p2p3;
-double VIp = VIp1p2 + VIp1p3 + VIp2p3;
-double VIc = VIp1cl + VIp2cl + VIp3cl;
+	double IG_strict = Ip1p2p3 - max(IGp1p2,0.0) - max(IGp1p3,0.0) - max(IGp2p3,0.0) - Ip1 - Ip2 - Ip3;
+	double IG_alt = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3 - Ip1 - Ip2 - Ip3;
+	double IG_new = Ip1p2p3;
+	double VIp = VIp1p2 + VIp1p3 + VIp2p3;
+	double VIc = VIp1cl + VIp2cl + VIp3cl;
 
-final[0] = IG_strict;
-final[1] = IG_alt;
-final[2] = IG_new;
-final[3] = VIp;
-final[4] = VIc;
+	final[0] = IG_strict;
+	final[1] = IG_alt;
+	final[2] = IG_new;
+	final[3] = VIp;
+	final[4] = VIc;
 	return final;
 }
 
@@ -420,6 +420,8 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 		int c, int istart, int iend, int jstart, int jend, int kstart, int kend){
 
 	/* (istart,jstart,jend) to (iend,jend,kend) INCLUSIVE BOTH SIDES */
+
+
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
