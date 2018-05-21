@@ -16,6 +16,9 @@
 #include <map>
 #include <fstream>
 using namespace std;
+#include <string>
+#include <sstream>
+#include <iostream>
 
 
 
@@ -341,6 +344,27 @@ std::vector<int> readData(std::string filename, int nrows, int nvars){
 
 }
 
+std::vector<int> readIndices(std::string filename, int n){
+
+	std::ifstream infile(filename.c_str());
+	std::string s;
+	std::vector<int> indexes;
+
+   //skip N lines
+   for(int i = 0; i < n; ++i){
+	   std::getline(infile, s);
+   }
+   std::getline(infile,s); // s is now the n'th line
+   cout << "s is" << s << std::endl;
+   std::replace( s.begin(), s.end(), ',', ' ' );
+   cout << "s is" << s << std::endl;
+   stringstream ss(s);
+
+   copy(istream_iterator<int>(ss), istream_iterator<int>(), back_inserter(indexes));
+
+   return indexes;
+}
+
 void runFullSearch(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c = 0){
 
@@ -393,8 +417,9 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 }
 
 void runFullSearchIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, int istart, int iend, int jstart, int jend,int kstart, int kend){
+		int c, int istart, int iend, int jstart, int jend, int kstart, int kend){
 
+	/* (istart,jstart,jend) to (iend,jend,kend) INCLUSIVE BOTH SIDES */
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes

@@ -20,5 +20,5 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 		int c = 0);
 void runFullSearchIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend,int kstart, int kend);
-
+std::vector<int> readIndices(std::string filename, int n);
 #endif /* FULLSEARCH_H_ */

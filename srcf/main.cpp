@@ -16,8 +16,8 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
 	// get command line arguments, warn user if something is wrong.
-	if (argc < 5){
-		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples -nvars" <<
+	if (argc < 6){
+		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples -nvars -nindex" <<
 				std::endl;
 		return 1;
 	}
@@ -25,6 +25,7 @@ int main(int argc, char* argv[]) {
 	std::string outputfile = "";
 	int nsamples = -1;
 	int nvars = -1;
+	int nindex = -1000;
 
 	cout << "argc is " << argc << std::endl;
 
@@ -70,6 +71,17 @@ int main(int argc, char* argv[]) {
 				std::cerr << "-input option requires one argument" << std::endl;
 				return 1;
 			}
+		}else if (std::string(argv[i]) == "-nindex"){
+			if (i+1 < argc){
+				std::istringstream iss(argv[i+1]);
+				iss >> nindex;
+				i++;
+
+
+			} else {
+				std::cerr << "-input option requires one argument" << std::endl;
+				return 1;
+			}
 		} else{
 			// error, none of the above.
 
@@ -83,13 +95,16 @@ int main(int argc, char* argv[]) {
 	cout << "outputfile = " << outputfile << std::endl;
 	cout << "nsamples = " << nsamples << std::endl;
 	cout << "nvars = " << nvars << std::endl;
-	// run full search
+	cout << "nindex = " << nindex << std::endl;
 
-	// end
-
-	runFullSearch(inputfile, outputfile, nsamples, nvars, 0);
-	//std::string outputtestersubset = "/Users/Omar/Documents/Year4/M4R/fullSearch/output/outputtestersubset.txt";
-	//runFullSearchIndexes(inputfile,outputtestersubset,nsamples,nvars,0,12,61,30,75,41,97);
+	if (nindex == -1000){
+		// no index pair given. Running full search.
+		runFullSearch(inputfile, outputfile, nsamples, nvars, 0);
+	} else {
+		// use nindex to find the 6 indices
+		// then run full search indexes
+		runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,12,61,30,75,41,97);
+	}
 
 	return 0;
 
