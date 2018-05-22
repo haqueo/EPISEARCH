@@ -124,10 +124,11 @@ int main(int argc, char* argv[]) {
 	t2=clock();
 	float diff ((float)t2-(float)t1);
 	float seconds = diff / CLOCKS_PER_SEC;
-	ofstream myfile ("statistics" + std::to_string(nindex) + ".txt");
+
+	ofstream myfile ("statistics.txt");
 
 	if (myfile.is_open()){
-		myfile << "time taken: "<< seconds << " s" << "\n";
+		myfile << "time taken: "<< seconds << " s";
 		myfile.close();
 	}
 
