@@ -1,0 +1,8 @@
+averageIGstrict: -1.86589e-05
+stddevIGstrict: 3.3935e-05
+averageIGalt: -1.60437e-08
+stddevIGalt: 1.06322e-06
+averageVIp: 0.226239
+stddevVIp: 0.288302
+averageVIc: 2.01769
+stddevVIc: 0.140612

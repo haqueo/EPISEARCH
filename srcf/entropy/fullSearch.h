@@ -17,8 +17,9 @@ double * calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3,
 		int cl, const int *d,int nsamples, int nvars, int c, double Hcl, double Hp1cl);
 std::vector<int> readData(std::string filename, int nrows, int nvars);
 void runFullSearch(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c = 0);
+		int c, bool printall, double assocLevel);
 void runFullSearchIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, int istart, int iend, int jstart, int jend,int kstart, int kend);
+		int c, int istart, int iend, int jstart, int jend, int kstart, int kend,
+		bool printall, double assocLevel);
 std::vector<int> readIndices(std::string filename, int n);
 #endif /* FULLSEARCH_H_ */

@@ -19,6 +19,7 @@ using namespace std;
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <math.h>
 
 
 
@@ -366,8 +367,7 @@ std::vector<int> readIndices(std::string filename, int n){
 }
 
 void runFullSearch(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c = 0){
-
+		int c, bool printall, double assocLevel){
 	std::vector<int> d = readData(filename, nsamples, nvars);
 
 	const int* p = d.data();
@@ -377,6 +377,20 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 	double Hcl = entropyFast(p,nsamples,nvars,c,v);
 	v[0] = -1;
+
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
+
+
 
 	ofstream myfile (outputFilename);
 
@@ -401,9 +415,28 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
+				if (printall){
 				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
 						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
 						"	"<< *(measureArray+4) << "\n";
+				} else if (*(measureArray+0) > assocLevel*Hcl){
+
+				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+										"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
+										"	"<< *(measureArray+4) << "\n";
+				}
+
+				measure0sum+=*(measureArray+0);
+				measure0squaredsum+=pow(*(measureArray+0),2);
+				measure1sum+=*(measureArray+1);
+				measure1squaredsum+=pow(*(measureArray+1),2);
+				measure2sum+=*(measureArray+2);
+				measure2squaredsum+=pow(*(measureArray+2),2);
+				measure3sum+=*(measureArray+3);
+				measure3squaredsum+=pow(*(measureArray+3),2);
+				measure4sum+=*(measureArray+4);
+				measure4squaredsum+=pow(*(measureArray+4),2);
+				iterations++;
 			}
 		}
 	}
@@ -414,13 +447,49 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 	}
 
 
+
+	ofstream myfile2 ("means.txt");
+
+	if (myfile2.is_open()){
+		myfile2 << "averageIGstrict: " << measure0sum/iterations << std::endl;
+		myfile2 << "stddevIGstrict: " << sqrt(measure0squaredsum/iterations - (pow(measure0sum/iterations,2))) << std::endl;
+
+		myfile2 << "averageIGalt: " << measure1sum/iterations << std::endl;
+		myfile2 << "stddevIGalt: " << sqrt(measure1squaredsum/iterations - (pow(measure1sum/iterations,2))) << std::endl;
+
+		myfile2 << "averageVIp: " << measure3sum/iterations << std::endl;
+		myfile2 << "stddevVIp: " << sqrt(measure3squaredsum/iterations - (pow(measure3sum/iterations,2))) << std::endl;
+
+
+		myfile2 << "averageVIc: " << measure4sum/iterations << std::endl;
+		myfile2 << "stddevVIc: " << sqrt(measure4squaredsum/iterations - (pow(measure4sum/iterations,2))) << std::endl;
+
+
+		myfile2.close();
+	}
+
+
+
 }
 
 void runFullSearchIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, int istart, int iend, int jstart, int jend, int kstart, int kend){
+		int c, int istart, int iend, int jstart, int jend, int kstart, int kend,
+		bool printall, double assocLevel){
 
 	/* (istart,jstart,jend) to (iend,jend,kend) INCLUSIVE BOTH SIDES */
 
+
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
 
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
@@ -475,9 +544,27 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
+				if (printall){
 				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
 						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
 						"	"<< *(measureArray+4) << "\n";
+				} else if (*(measureArray+0) > assocLevel*Hcl){
+				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+										"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
+										"	"<< *(measureArray+4) << "\n";
+				}
+
+				measure0sum+=*(measureArray+0);
+				measure0squaredsum+=pow(*(measureArray+0),2);
+				measure1sum+=*(measureArray+1);
+				measure1squaredsum+=pow(*(measureArray+1),2);
+				measure2sum+=*(measureArray+2);
+				measure2squaredsum+=pow(*(measureArray+2),2);
+				measure3sum+=*(measureArray+3);
+				measure3squaredsum+=pow(*(measureArray+3),2);
+				measure4sum+=*(measureArray+4);
+				measure4squaredsum+=pow(*(measureArray+4),2);
+				iterations++;
 
 				Done = (i >= iend) && (j >= jend) && (k >= kend);
 			}
@@ -488,6 +575,31 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 	} else {
 		cout << "Unable to open file";
 	}
+
+
+	ofstream myfile2 ("means.txt");
+
+	if (myfile2.is_open()){
+		myfile2 << "averageIGstrict: " << measure0sum/iterations << std::endl;
+				myfile2 << "stddevIGstrict: " << sqrt(measure0squaredsum/iterations - (pow(measure0sum/iterations,2))) << std::endl;
+
+				myfile2 << "averageIGalt: " << measure1sum/iterations << std::endl;
+				myfile2 << "stddevIGalt: " << sqrt(measure1squaredsum/iterations - (pow(measure1sum/iterations,2))) << std::endl;
+
+				myfile2 << "averageVIp: " << measure3sum/iterations << std::endl;
+				myfile2 << "stddevVIp: " << sqrt(measure3squaredsum/iterations - (pow(measure3sum/iterations,2))) << std::endl;
+
+
+				myfile2 << "averageVIc: " << measure4sum/iterations << std::endl;
+				myfile2 << "stddevVIc: " << sqrt(measure4squaredsum/iterations - (pow(measure4sum/iterations,2))) << std::endl;
+
+
+
+			myfile2.close();
+		}
+
+
+
 
 
 }

@@ -18,7 +18,8 @@ int main(int argc, char* argv[]) {
 
 	// get command line arguments, warn user if something is wrong.
 	if (argc < 6){
-		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples -nvars -nindex -indexfile" <<
+		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples "
+				"-nvars -nindex -indexfile -printall -assoclevel" <<
 				std::endl;
 		return 1;
 	}
@@ -28,6 +29,9 @@ int main(int argc, char* argv[]) {
 	int nvars = -1;
 	int nindex = -1000;
 	std::string indexfile = "";
+	std::string printallDec = "";
+	bool printall = false;
+	double assoclevel = 0.05;
 
 	cout << "argc is " << argc << std::endl;
 
@@ -93,7 +97,36 @@ int main(int argc, char* argv[]) {
 				std::cerr << "-indexfile option requires one argument" << std::endl;
 				return 1;
 			}
-		}  else{
+		}else if (std::string(argv[i]) == "-printall"){
+			if (i+1 < argc){
+
+				printallDec = argv[i+1];
+				i++;
+
+				if (printallDec == "y"){
+					printall=true;
+				} else if (printallDec == "n"){
+					printall= false;
+				} else{
+					std::cerr << "input to -printall is y or n" << std::endl;
+					return 1;
+				}
+
+
+			} else {
+				std::cerr << "-printall option requires one argument" << std::endl;
+				return 1;
+			}
+		} else if (std::string(argv[i]) == "-assoclevel"){
+			if (i+1 < argc){
+				std::istringstream iss(argv[i+1]);
+				iss >> assoclevel;
+				i++;
+
+			} else {
+				std::cerr << "-assoclevel option requires one argument" << std::endl;
+				return 1;
+			}}  else{
 			// error, none of the above.
 
 			std::cerr << "input not in valid format";
@@ -108,7 +141,7 @@ int main(int argc, char* argv[]) {
 
 	if (nindex == -1000){
 		// no index pair given. Running full search.
-		runFullSearch(inputfile, outputfile, nsamples, nvars, 0);
+		runFullSearch(inputfile, outputfile, nsamples, nvars, 0,printall,assoclevel);
 	} else {
 		// use nindex to find the 6 indices
 		std::vector<int> limits = readIndices(indexfile,nindex);
@@ -119,13 +152,13 @@ int main(int argc, char* argv[]) {
 
 		// then run full search indexes
 		runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
-				limits[3],limits[1],limits[4],limits[2],limits[5]);
+				limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
 	}
 	t2=clock();
 	float diff ((float)t2-(float)t1);
 	float seconds = diff / CLOCKS_PER_SEC;
 
-	ofstream myfile ("statistics.txt");
+	ofstream myfile ("statisticsAn.txt");
 
 	if (myfile.is_open()){
 		myfile << "time taken: "<< seconds << " s";
