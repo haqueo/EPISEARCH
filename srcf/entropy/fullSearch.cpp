@@ -324,7 +324,7 @@ std::vector<int> readData(std::string filename, int nrows, int nvars){
 	static std::vector<int> data(datasize);
 	static std::vector<int> dataReal(datasize);
 
-    std::fstream myfile(filename, std::ios_base::in);
+    std::fstream myfile(filename.c_str(), std::ios_base::in);
 
     int a;
 
@@ -392,7 +392,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 
 
-	ofstream myfile (outputFilename);
+	ofstream myfile (outputFilename.c_str());
 
 	if (myfile.is_open()){
 
@@ -464,6 +464,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 		myfile2 << "averageVIc: " << measure4sum/iterations << std::endl;
 		myfile2 << "stddevVIc: " << sqrt(measure4squaredsum/iterations - (pow(measure4sum/iterations,2))) << std::endl;
 
+		myfile2 << "iterations:" << iterations << std::endl;
 
 		myfile2.close();
 	}
@@ -503,7 +504,7 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 	double Hcl = entropyFast(p,nsamples,nvars,c,v);
 	v[0] = -1;
 
-	ofstream myfile (outputFilename);
+	ofstream myfile (outputFilename.c_str());
 
 	bool Done = false;
 
