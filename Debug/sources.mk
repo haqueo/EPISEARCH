@@ -25,4 +25,5 @@ C_DEPS :=
 SUBDIRS := \
 srcf/entropy \
 srcf \
+srcf/searchTools \
 

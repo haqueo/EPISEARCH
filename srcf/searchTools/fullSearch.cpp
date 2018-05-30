@@ -20,7 +20,7 @@ using namespace std;
 #include <sstream>
 #include <iostream>
 #include <math.h>
-#include "entropy.h"
+#include "../entropy/entropy.h"
 
 
 

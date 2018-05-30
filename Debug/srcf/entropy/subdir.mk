@@ -4,16 +4,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../srcf/entropy/entropy.cpp \
-../srcf/entropy/fullSearch.cpp 
+../srcf/entropy/entropy.cpp 
 
 OBJS += \
-./srcf/entropy/entropy.o \
-./srcf/entropy/fullSearch.o 
+./srcf/entropy/entropy.o 
 
 CPP_DEPS += \
-./srcf/entropy/entropy.d \
-./srcf/entropy/fullSearch.d 
+./srcf/entropy/entropy.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

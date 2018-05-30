@@ -10,7 +10,7 @@
 #include <sstream>
 #include <time.h>
 
-#include "../srcf/entropy/fullSearch.h"
+#include "searchTools/fullSearch.h"
 
 using namespace std;
 
