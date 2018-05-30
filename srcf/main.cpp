@@ -1,5 +1,4 @@
 #include <iostream>
-#include "entropy/fullSearch.h"
 #include <string>
 #include <fstream>
 //using namespace std;
@@ -10,6 +9,8 @@
 #include <map>
 #include <sstream>
 #include <time.h>
+
+#include "../srcf/entropy/fullSearch.h"
 
 using namespace std;
 

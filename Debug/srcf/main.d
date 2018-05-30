@@ -1,3 +1,3 @@
-srcf/main.o: ../srcf/main.cpp ../srcf/entropy/fullSearch.h
+srcf/main.o: ../srcf/main.cpp ../srcf/../srcf/entropy/fullSearch.h
 
-../srcf/entropy/fullSearch.h:
+../srcf/../srcf/entropy/fullSearch.h:
