@@ -166,6 +166,11 @@ int main(int argc, char* argv[]) {
 		myfile.close();
 	}
 
+
+
+	cout << "running PAM now" << std::endl;
+
+	runPAM(10);
 	return 0;
 
 }

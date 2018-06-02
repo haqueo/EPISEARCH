@@ -46,7 +46,7 @@ all: fullSearch
 fullSearch: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/Users/Omar/Documents/Year4/M4R/googletest/build/googlemock/gtest -o "fullSearch" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L/Users/Omar/Documents/Year4/M4R/googletest/build/googlemock/gtest -L/opt/local/include -L/Users/Omar/Documents/Year4/M4R/muster/src -o "fullSearch" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -21,4 +21,5 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 		int c, int istart, int iend, int jstart, int jend, int kstart, int kend,
 		bool printall, double assocLevel);
 std::vector<int> readIndices(std::string filename, int n);
+void runPAM(int pun);
 #endif /* FULLSEARCH_H_ */

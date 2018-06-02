@@ -1,8 +1,9 @@
-averageIGstrict: -1.86589e-05
-stddevIGstrict: 3.3935e-05
-averageIGalt: -1.60437e-08
-stddevIGalt: 1.06322e-06
-averageVIp: 0.226239
-stddevVIp: 0.288302
-averageVIc: 2.01769
-stddevVIc: 0.140612
+IGStrictSum -0.000578427
+IGStrictSquaredSum 4.6492e-08
+IGAltSum: -4.97354e-07
+IGAltSquaredSum 3.50514e-11
+VIpSum 7.01341
+VIpSquaredSum 4.16337
+VIcSum 62.5483
+VIcSquaredSum 126.816
+iterations:31

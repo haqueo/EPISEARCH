@@ -20,7 +20,8 @@ using namespace std;
 #include <iostream>
 #include <math.h>
 #include "../entropy/entropy.h"
-
+#include <kmedoids.h>
+using namespace cluster;
 /**
     Returns an array of information theoretic measures
 
@@ -279,18 +280,18 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 	ofstream myfile2 ("means.txt");
 
 	if (myfile2.is_open()){
-		myfile2 << "averageIGstrict: " << measure0sum/iterations << std::endl;
-		myfile2 << "avgIGstrictSquared: " << measure0squaredsum/iterations << std::endl;
+		myfile2 << "IGStrictSum " << measure0sum << std::endl;
+		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
 
-		myfile2 << "averageIGalt: " << measure1sum/iterations << std::endl;
-		myfile2 << "avgIGaltSquared: " << measure1squaredsum/iterations << std::endl;
+		myfile2 << "IGAltSum: " << measure1sum << std::endl;
+		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
 
-		myfile2 << "averageVIp: " << measure3sum/iterations << std::endl;
-		myfile2 << "avgVIpSquared: " << measure3squaredsum/iterations << std::endl;
+		myfile2 << "VIpSum " << measure3sum << std::endl;
+		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
 
 
-		myfile2 << "averageVIc: " << measure4sum/iterations << std::endl;
-		myfile2 << "avgVIcSquared: " <<measure4squaredsum/iterations  << std::endl;
+		myfile2 << "VIcSum " << measure4sum << std::endl;
+		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
 
 		myfile2 << "iterations:" << iterations << std::endl;
 
@@ -397,6 +398,7 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 										"	"<< *(measureArray+4) << "\n";
 				}
 
+				// TODO: add overflow protection
 				measure0sum+=*(measureArray+0);
 				measure0squaredsum+=pow(*(measureArray+0),2);
 				measure1sum+=*(measureArray+1);
@@ -422,22 +424,81 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 
 	if (myfile2.is_open()){
 
-		myfile2 << "averageIGstrict: " << measure0sum/iterations << std::endl;
-		myfile2 << "avgIGstrictSquared: " << measure0squaredsum/iterations << std::endl;
+		myfile2 << "IGStrictSum " << measure0sum << std::endl;
+		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
 
-		myfile2 << "averageIGalt: " << measure1sum/iterations << std::endl;
-		myfile2 << "avgIGaltSquared: " << measure1squaredsum/iterations << std::endl;
+		myfile2 << "IGAltSum: " << measure1sum << std::endl;
+		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
 
-		myfile2 << "averageVIp: " << measure3sum/iterations << std::endl;
-		myfile2 << "avgVIpSquared: " << measure3squaredsum/iterations << std::endl;
+		myfile2 << "VIpSum " << measure3sum << std::endl;
+		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
 
 
-		myfile2 << "averageVIc: " << measure4sum/iterations << std::endl;
-		myfile2 << "avgVIcSquared: " <<measure4squaredsum/iterations  << std::endl;
+		myfile2 << "VIcSum " << measure4sum << std::endl;
+		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
 
 		myfile2 << "iterations:" << iterations << std::endl;
 
 			myfile2.close();
 		}
 }
+
+
+
+void runPAM(int pun){
+
+
+	// run kmedoids on the small 100 site dataset
+	std::vector<int> d = readData("/Users/Omar/Documents/Year4/M4R/fullSearch/data/prjebintTESTfirst100.txt",469,101);
+	int* dnew = d.data();
+	kmedoids a;
+
+	dissimilarity_matrix b (100,100);
+
+
+
+
+
+	int selTempNew[4] = {-1,-1,-1,-1};
+
+	cout << "Building dissimilarity matrix" << std::endl;
+
+	for (size_t i=0; i < 100; i++){
+		cout << "i is " << i << std::endl;
+		selTempNew[0] = i;
+		double Hi = entropyFast(dnew,469,101,0,selTempNew);
+
+		for (size_t j=0; j <=i; j++){
+			cout << "got here alright" << std::endl;
+			selTempNew[0] = j;
+			double Hj = entropyFast(dnew,469,101,0,selTempNew);
+			selTempNew[1] = i;
+			double Hij = entropyFast(dnew,469,101,0,selTempNew);
+			cout << "got here alright" << std::endl;
+			b(i,j) = 2*Hij - Hi - Hj;
+			b(j,i) = b(i,j);
+		}
+	}
+
+	cout << "Done." << std::endl;
+
+
+	cout << "running PAM" << std::endl;
+	size_t k = 3;
+	a.pam(b,k);
+
+	cout << "done." << std::endl;
+
+
+	cout << "a.cluster_ids0 is " << a.cluster_ids[0] << std::endl;
+	cout << "a.cluster_ids1 is " << a.cluster_ids[1] << std::endl;
+	cout << "a.cluster_ids2 is " << a.cluster_ids[2] << std::endl;
+
+	cluster_list clList;
+	a.to_cluster_list(clList);
+
+
+
+}
+
 
