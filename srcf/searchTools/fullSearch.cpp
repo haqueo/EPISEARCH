@@ -17,7 +17,7 @@
 using namespace std;
 #include <string>
 #include <sstream>
-#include <iostream>
+#include <iterator>
 #include <math.h>
 #include "../entropy/entropy.h"
 #include <kmedoids.h>
