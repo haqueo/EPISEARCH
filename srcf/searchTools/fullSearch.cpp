@@ -445,58 +445,52 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 
 
 
-void runPAM(int pun){
-
+void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, int nvars, size_t k){
 
 	// run kmedoids on the small 100 site dataset
-	std::vector<int> d = readData("/Users/Omar/Documents/Year4/M4R/fullSearch/data/prjebintTESTfirst100.txt",469,101);
-	int* dnew = d.data();
+	std::vector<int> d = readData(datafile,nsamples,nvars);
+	const int* dnew = d.data();
+
+	const int snpsNum = nvars - 1;
+
 	kmedoids a;
 
-	dissimilarity_matrix b (100,100);
-
-
-
-
+	dissimilarity_matrix b (snpsNum,snpsNum);
 
 	int selTempNew[4] = {-1,-1,-1,-1};
 
-	cout << "Building dissimilarity matrix" << std::endl;
+	// build dissimilarity matrix
 
-	for (size_t i=0; i < 100; i++){
-		cout << "i is " << i << std::endl;
+	for (int i=0; i < snpsNum; i++){
 		selTempNew[0] = i;
 		double Hi = entropyFast(dnew,469,101,0,selTempNew);
-
-		for (size_t j=0; j <=i; j++){
-			cout << "got here alright" << std::endl;
+		for (int j=0; j <=i; j++){
 			selTempNew[0] = j;
 			double Hj = entropyFast(dnew,469,101,0,selTempNew);
-			selTempNew[1] = i;
+
+			selTempNew[0] = i;
+			selTempNew[1] = j;
 			double Hij = entropyFast(dnew,469,101,0,selTempNew);
-			cout << "got here alright" << std::endl;
+			selTempNew[0] = -1;
+			selTempNew[1] = -1;
+
 			b(i,j) = 2*Hij - Hi - Hj;
 			b(j,i) = b(i,j);
 		}
 	}
 
-	cout << "Done." << std::endl;
 
+	a.pam(b,k); // run PAM
 
-	cout << "running PAM" << std::endl;
-	size_t k = 3;
-	a.pam(b,k);
+	ofstream myfile2 (outputClustersFile);
 
-	cout << "done." << std::endl;
+	if (myfile2.is_open()){
+		for (int i = 0; i < 100; i++){
+			myfile2 << i << "," << a.cluster_ids[i] << std::endl;
+		}
 
-
-	cout << "a.cluster_ids0 is " << a.cluster_ids[0] << std::endl;
-	cout << "a.cluster_ids1 is " << a.cluster_ids[1] << std::endl;
-	cout << "a.cluster_ids2 is " << a.cluster_ids[2] << std::endl;
-
-	cluster_list clList;
-	a.to_cluster_list(clList);
-
+		myfile2.close();
+		}
 
 
 }
