@@ -161,16 +161,19 @@ int main(int argc, char* argv[]) {
 
 	ofstream myfile ("statistics.txt");
 
+
+
+
+	cout << "running PAM now" << std::endl;
+
+	runPAM(inputfile,"clusters.txt",nsamples,nvars,10);
+
 	if (myfile.is_open()){
 		myfile << "time taken: "<< seconds << " s";
 		myfile.close();
 	}
 
 
-
-	cout << "running PAM now" << std::endl;
-
-	runPAM(10);
 	return 0;
 
 }

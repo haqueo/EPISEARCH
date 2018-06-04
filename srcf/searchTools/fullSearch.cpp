@@ -492,7 +492,6 @@ void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, 
 		myfile2.close();
 		}
 
-
 }
 
 
