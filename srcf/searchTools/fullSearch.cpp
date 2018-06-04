@@ -118,7 +118,7 @@ double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl
 	// calculation of the measures
 	double IG_strict = Ip1p2p3 - max(IGp1p2,0.0) - max(IGp1p3,0.0) - max(IGp2p3,0.0) - Ip1 - Ip2 - Ip3;
 	double IG_alt = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3 - Ip1 - Ip2 - Ip3;
-	double IG_new = Ip1p2p3;
+	double IG_new = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3;
 	double VIp = VIp1p2 + VIp1p3 + VIp2p3;
 	double VIc = VIp1cl + VIp2cl + VIp3cl;
 
@@ -249,14 +249,14 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 				if (printall){
 				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
-						"	"<< *(measureArray+4) << "\n";
+						"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+						*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
 				} else if (*(measureArray+0) > assocLevel*Hcl){
 
 				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-										"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
-										"	"<< *(measureArray+4) << "\n";
-				}
+										"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+										*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
+			}
 
 				measure0sum+=*(measureArray+0);
 				measure0squaredsum+=pow(*(measureArray+0),2);
@@ -286,9 +286,11 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 		myfile2 << "IGAltSum: " << measure1sum << std::endl;
 		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
 
+		myfile2 << "IGSum " << measure2sum << std::endl;
+		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
+
 		myfile2 << "VIpSum " << measure3sum << std::endl;
 		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
-
 
 		myfile2 << "VIcSum " << measure4sum << std::endl;
 		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
@@ -389,13 +391,13 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 						nsamples, nvars, c, Hcl, Hp1cl);
 
 				if (printall){
-				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-						"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
-						"	"<< *(measureArray+4) << "\n";
+					myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+											"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+											*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
 				} else if (*(measureArray+0) > assocLevel*Hcl){
-				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-										"	"<< *(measureArray+1) <<"	"<< *(measureArray+3) <<
-										"	"<< *(measureArray+4) << "\n";
+					myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+											"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+											*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
 				}
 
 				// TODO: add overflow protection
@@ -433,6 +435,8 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 		myfile2 << "VIpSum " << measure3sum << std::endl;
 		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
 
+		myfile2 << "IGSum " << measure2sum << std::endl;
+		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
 
 		myfile2 << "VIcSum " << measure4sum << std::endl;
 		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
@@ -463,14 +467,14 @@ void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, 
 
 	for (int i=0; i < snpsNum; i++){
 		selTempNew[0] = i;
-		double Hi = entropyFast(dnew,469,101,0,selTempNew);
+		double Hi = entropyFast(dnew,nsamples,nvars,0,selTempNew);
 		for (int j=0; j <=i; j++){
 			selTempNew[0] = j;
-			double Hj = entropyFast(dnew,469,101,0,selTempNew);
+			double Hj = entropyFast(dnew,nsamples,nvars,0,selTempNew);
 
 			selTempNew[0] = i;
 			selTempNew[1] = j;
-			double Hij = entropyFast(dnew,469,101,0,selTempNew);
+			double Hij = entropyFast(dnew,nsamples,nvars,0,selTempNew);
 			selTempNew[0] = -1;
 			selTempNew[1] = -1;
 
@@ -485,7 +489,7 @@ void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, 
 	ofstream myfile2 (outputClustersFile);
 
 	if (myfile2.is_open()){
-		for (int i = 0; i < 100; i++){
+		for (int i = 0; i < snpsNum; i++){
 			myfile2 << i << "," << a.cluster_ids[i] << std::endl;
 		}
 

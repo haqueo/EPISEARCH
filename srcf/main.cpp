@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 
 	if (nindex == -1000){
 		// no index pair given. Running full search.
-		runFullSearch(inputfile, outputfile, nsamples, nvars, 0,printall,assoclevel);
+		//runFullSearch(inputfile, outputfile, nsamples, nvars, 0,printall,assoclevel);
 	} else {
 		// use nindex to find the 6 indices
 		std::vector<int> limits = readIndices(indexfile,nindex);
@@ -152,8 +152,8 @@ int main(int argc, char* argv[]) {
 
 
 		// then run full search indexes
-		runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
-				limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
+		//runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
+		//		limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
 	}
 	t2=clock();
 	float diff ((float)t2-(float)t1);
