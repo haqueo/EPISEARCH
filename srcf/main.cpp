@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 
 	cout << "running PAM now" << std::endl;
 
-	runPAM(inputfile,"clusters.txt",nsamples,nvars,10);
+	runPAM(inputfile,"clusters.txt",nsamples,nvars,200);
 
 	if (myfile.is_open()){
 		myfile << "time taken: "<< seconds << " s";
