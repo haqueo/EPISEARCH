@@ -301,13 +301,9 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 	}
 }
 
-int findk(int kcandidate){
-	return -1;
-}
-
 void runFullSimpleFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
-		bool printall, double assocLevel){
+		bool printall, double assocLevel,std::vector<double> viDists){
 
 
 	double measure0sum = 0.0;
@@ -373,7 +369,8 @@ void runFullSimpleFilter(std::string filename, std::string outputFilename, int n
 				kstartcandidate = j+1;
 			}
 
-			kstartreal = findk(kstartcandidate);
+			kstartreal = std::upper_bound(viDists.begin() + kstartcandidate,viDists.end(),
+					epsilon - viDists[i] - viDists[j]);
 
 		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
 						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
@@ -410,11 +407,134 @@ void runFullSimpleFilter(std::string filename, std::string outputFilename, int n
 	}
 }
 
+int getCluster(int iter, std::vector<int> clusterIDs, std::vector<int> clusterSizes){
+	return -1;
+}
+
 void runFullClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
-		bool printall, double assocLevel){
+		bool printall, double assocLevel, std::vector<int> clusterIDs, std::vector<int> clusterSizes){
 
-}
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
+
+
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
+
+	const int* p = d.data();
+
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
+
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
+
+	ofstream myfile (outputFilename.c_str());
+
+	bool Done = false;
+
+	if (myfile.is_open()){
+
+	int jstartreal;
+	int kstartreal;
+
+	for (int i = istart; !Done; i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		if (i == istart){
+			if(getCluster(i,clusterIDs,clusterSizes) == getCluster(jstart,clusterIDs,clusterSizes)){
+				jstartreal = getCluster(i,clusterIDs,clusterSizes) + 1;
+			} else {
+				jstartreal = jstart;
+			}
+
+
+		} else {
+			if(getCluster(i,clusterIDs,clusterSizes) == getCluster(i+1,clusterIDs,clusterSizes)){
+				//TODO: this if condition can be simplified in terms of clusterSizes and clusterIDs
+				jstartreal=getCluster(i,clusterIDs,clusterSizes) + 1;
+			} else{
+				jstartreal = i+1;
+			}
+
+		}
+
+		// jstartreal is done.
+		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
+
+					v[0] = j;
+					double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+					v[0] = -1;
+
+					if (j == jstart){
+						if(getCluster(j,clusterIDs,clusterSizes) == getCluster(kstart,clusterIDs,clusterSizes)){
+							jstartreal = getCluster(j,clusterIDs,clusterSizes) + 1;
+						} else {
+							kstartreal = kstart;
+						}
+
+					} else {
+
+						if (getCluster(j,clusterIDs,clusterSizes) == getCluster(j+1,clusterIDs,clusterSizes)){
+							kstartreal=getCluster(j,clusterIDs,clusterSizes) + 1;
+						} else{
+							kstartreal = j+1;
+						}
+
+					}
+		// found kstartreal
+		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
+						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+								nsamples, nvars, c, Hcl, Hp1cl);
+
+						if (printall){
+							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
+						} else if (*(measureArray+0) > assocLevel*Hcl){
+							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
+						}
+
+						// TODO: add overflow protection
+						measure0sum+=*(measureArray+0);
+						measure0squaredsum+=pow(*(measureArray+0),2);
+						measure1sum+=*(measureArray+1);
+						measure1squaredsum+=pow(*(measureArray+1),2);
+						measure2sum+=*(measureArray+2);
+						measure2squaredsum+=pow(*(measureArray+2),2);
+						measure3sum+=*(measureArray+3);
+						measure3squaredsum+=pow(*(measureArray+3),2);
+						measure4sum+=*(measureArray+4);
+						measure4squaredsum+=pow(*(measureArray+4),2);
+						iterations++;
+
+						Done = (i >= iend) && (j >= jend) && (k >= kend);
+
+		}
+	}
+	}
+	}
+
+	}
+
 
 /**
  * Run through specified indexes in the dataset, calculating measures for each triple.
@@ -436,6 +556,7 @@ void runFullClusterFilter(std::string filename, std::string outputFilename, int 
 void runFullSearchIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart, int kend,
 		bool printall, double assocLevel){
+
 
 	/* (istart,jstart,jend) to (iend,jend,kend) INCLUSIVE BOTH SIDES */
 
@@ -562,9 +683,7 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 }
 
 
-
 void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, int nvars, size_t k){
-
 	// run kmedoids on the small 100 site dataset
 	std::vector<int> d = readData(datafile,nsamples,nvars);
 	const int* dnew = d.data();
