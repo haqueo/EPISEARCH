@@ -301,6 +301,120 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 	}
 }
 
+int findk(int kcandidate){
+	return -1;
+}
+
+void runFullSimpleFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
+		bool printall, double assocLevel){
+
+
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
+
+
+
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
+
+	const int* p = d.data();
+	// sorted dataframe
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
+
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
+
+	ofstream myfile (outputFilename.c_str());
+
+	bool Done = false;
+
+	if (myfile.is_open()){
+
+	int jstartreal;
+	int kstartcandidate;
+	int kstartreal;
+
+	for (int i = istart; !Done; i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		if (i == istart){
+			jstartreal = jstart;
+		} else {
+			jstartreal = i+1;
+		}
+
+		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
+
+			v[0] = j;
+			double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+			v[0] = -1;
+
+
+			if (j == jstart){
+				kstartcandidate = kstart;
+			} else {
+				kstartcandidate = j+1;
+			}
+
+			kstartreal = findk(kstartcandidate);
+
+		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
+						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+								nsamples, nvars, c, Hcl, Hp1cl);
+
+						if (printall){
+							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
+						} else if (*(measureArray+0) > assocLevel*Hcl){
+							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
+													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
+													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
+						}
+
+						// TODO: add overflow protection
+						measure0sum+=*(measureArray+0);
+						measure0squaredsum+=pow(*(measureArray+0),2);
+						measure1sum+=*(measureArray+1);
+						measure1squaredsum+=pow(*(measureArray+1),2);
+						measure2sum+=*(measureArray+2);
+						measure2squaredsum+=pow(*(measureArray+2),2);
+						measure3sum+=*(measureArray+3);
+						measure3squaredsum+=pow(*(measureArray+3),2);
+						measure4sum+=*(measureArray+4);
+						measure4squaredsum+=pow(*(measureArray+4),2);
+						iterations++;
+
+						Done = (i >= iend) && (j >= jend) && (k >= kend);
+
+				}
+			}
+		}
+	}
+}
+
+void runFullClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
+		bool printall, double assocLevel){
+
+}
 
 /**
  * Run through specified indexes in the dataset, calculating measures for each triple.
