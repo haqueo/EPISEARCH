@@ -372,7 +372,12 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 	int numClusters = clusterSizes.size();
 	int iUpperLim = getIndexNextCluster(numClusters - 3,clusterIDs,clusterSizes,numClusters,nvars); // upper limit i exclusive
 	int jUpperLim = getIndexNextCluster(numClusters - 2,clusterIDs,clusterSizes,numClusters,nvars); // upper limit j exclusive
-	int kUpperLim = nvars-1;
+	int iTrueUpperLim = min(iUpperLim,iend);
+	int jTrueUpperLim = min(jUpperLim,jend);
+	int kTrueUpperLim = min(nvars-2,kend);
+
+	cout << "iUpperLim is " <<iUpperLim <<std::endl;
+	cout << "jUpperLim is " << jUpperLim<<std::endl;
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -394,7 +399,7 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 	int jstartreal;
 	int kstartreal;
 
-	for (int i = istart; !Done; i++){
+	for (int i = istart; (i < iend) && !Done; i++){
 		v[0] = i;
 		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
 		v[1] = nvars-1;
@@ -427,7 +432,7 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 		}
 
 		// jstartreal is done.
-		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
+		for (int j = jstartreal; (j < jend) && !Done; j++){
 
 					v[0] = j;
 					double Hp2 = entropyFast(p,nsamples,nvars,c,v);
@@ -481,7 +486,9 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 						measure4squaredsum+=pow(*(measureArray+4),2);
 						iterations++;
 
-						Done = (i >= iend) && (j >= jend) && (k >= kend) && (i < iUpperLim) && (j < jUpperLim);
+						cout << "I got to end" << std::endl;
+
+						Done = (i >= iTrueUpperLim) && (j >= jTrueUpperLim) && (k >= kTrueUpperLim);
 
 		}
 	}

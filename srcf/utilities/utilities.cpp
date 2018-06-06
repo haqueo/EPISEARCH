@@ -102,11 +102,11 @@ std::vector<int> readClusterIDs(std::string filename){
 	std::ifstream ifile(filename.c_str(),std::ios::in);
 	std::vector<int> clusterIDs;
 
-	double num = 0.0;
+	int num = 0;
 	while(ifile >> num){
 		clusterIDs.push_back(num);
 	}
-
+	cout << "finished reading clusterIDs" <<std::endl;
 	return clusterIDs;
 }
 
@@ -114,10 +114,12 @@ std::vector<int> readClusterSizes(std::string filename){
 	std::ifstream ifile(filename.c_str(),std::ios::in);
 	std::vector<int> clusterSizes;
 
-	double num = 0.0;
+	int num = 0;
 	while(ifile >> num){
 		clusterSizes.push_back(num);
 	}
+	cout << "finished reading clusterSizes" << std::endl;
+
 
 	return clusterSizes;
 }
@@ -129,7 +131,6 @@ std::vector<int> readClusterSizes(std::string filename){
 int getIndexNextCluster(int thisClusterID, std::vector<int> clusterIDs, std::vector<int> clusterSizes,
 		int numClusters, int nvars){
 
-	int limit;
 
 	if(thisClusterID == numClusters-1){
 		return nvars+1;

@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
 					std::cerr << "input to -clusterfilter option requires one argument" << std::endl;
 					return 1;
 				}
-			}else if (std::string(argv[i]) == "clusterfilterIDsFile"){
+			}else if (std::string(argv[i]) == "-clusterfilterIDsFile"){
 
 				if(i+1 < argc){
 					clusterFilterIDsFile = argv[i+1];
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 				} else {
 					std::cerr << "-clusterfilterIDsFile option requires one argument";
 				}
-			}else if (std::string(argv[i]) == "clusterfilterSizeFile"){
+			}else if (std::string(argv[i]) == "-clusterfilterSizeFile"){
 
 				if (i+1 < argc){
 					clusterFilterSizeFile = argv[i+1];
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
 				}
 			}else{
 			// error, none of the above.
-
+				std::cerr << std::string(argv[i]) << std::endl;
 			std::cerr << "input not in valid format";
 			return 1;
 		}
@@ -247,6 +247,8 @@ int main(int argc, char* argv[]) {
 
 	} else if (clusterFilter){
 
+		cout << "I got here, cluster filter section"<< std::endl;
+
 		std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile);
 		std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile);
 
@@ -260,14 +262,14 @@ int main(int argc, char* argv[]) {
 	ofstream myfile ("statistics.txt");
 
 
-	cout << "running PAM now" << std::endl;
-
-	runPAM(inputfile,"clusters.txt",nsamples,nvars,200);
-
-	if (myfile.is_open()){
-		myfile << "time taken: "<< seconds << " s";
-		myfile.close();
-	}
+//	cout << "running PAM now" << std::endl;
+//
+//	runPAM(inputfile,"clusters.txt",nsamples,nvars,200);
+//
+//	if (myfile.is_open()){
+//		myfile << "time taken: "<< seconds << " s";
+//		myfile.close();
+//	}
 
 
 	return 0;
