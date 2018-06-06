@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "searchTools/fullSearch.h"
+#include "utilities/utilities.h"
 
 using namespace std;
 
@@ -20,7 +21,8 @@ int main(int argc, char* argv[]) {
 	// get command line arguments, warn user if something is wrong.
 	if (argc < 6){
 		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples "
-				"-nvars -nindex -indexfile -printall -assoclevel" <<
+				"-nvars -nindex -indexfile -printall -assoclevel -VIfilter -VIfilterfile -epsilon"
+				" -clusterfilter -clusterfilterIDsFile -clusterfilterSizeFile" <<
 				std::endl;
 		return 1;
 	}
@@ -33,6 +35,14 @@ int main(int argc, char* argv[]) {
 	std::string printallDec = "";
 	bool printall = false;
 	double assoclevel = 0.05;
+	std::string VIfilterDec = "";
+	bool VIfilter = false;
+	std::string VIfilterfile = "";
+	double epsilon = 0.0;
+	std::string clusterFilterDec = "";
+	bool clusterFilter = false;
+	std::string clusterFilterIDsFile = "";
+	std::string clusterFilterSizeFile = "";
 
 	cout << "argc is " << argc << std::endl;
 
@@ -127,7 +137,78 @@ int main(int argc, char* argv[]) {
 			} else {
 				std::cerr << "-assoclevel option requires one argument" << std::endl;
 				return 1;
-			}}  else{
+			}}  else if (std::string(argv[i]) == "-VIfilter"){
+			if (i+1 < argc){
+
+						VIfilterDec = argv[i+1];
+						i++;
+
+						if (VIfilterDec == "y"){
+							VIfilter=true;
+						} else if (VIfilterDec == "n"){
+							VIfilter= false;
+						} else{
+							std::cerr << "input to -VIfilter is y or n" << std::endl;
+							return 1;
+						}
+
+
+					} else {
+						std::cerr << "-VIfilter option requires one argument" << std::endl;
+						return 1;
+					}
+			} else if (std::string(argv[i]) == "-VIfilterfile"){
+
+				if (i+1 < argc){
+							VIfilterfile = argv[i+1];
+							i++;
+						} else {
+							std::cerr << "-VIfilterfile option requires one argument" << std::endl;
+							return 1;
+						}
+			} else if (std::string(argv[i]) == "-epsilon"){
+				if (i+1 < argc){
+					std::istringstream iss(argv[i+1]);
+					iss >> epsilon;
+					i++;
+				} else {
+					std::cerr << "-epsilon option requires one argument" << std::endl;
+					return 1;
+				}
+			} else if (std::string(argv[i]) == "-clusterfilter"){
+				if (i+1 < argc){
+
+					clusterFilterDec = argv[i+1];
+					i++;
+					if(clusterFilterDec == "y"){
+						clusterFilter=true;
+					} else if (clusterFilterDec == "n"){
+						clusterFilter = false;
+					} else{
+						std::cerr << "input to -clusterfilter is y or n" << std::endl;
+						return 1;
+					}
+				} else {
+					std::cerr << "input to -clusterfilter option requires one argument" << std::endl;
+					return 1;
+				}
+			}else if (std::string(argv[i]) == "clusterfilterIDsFile"){
+
+				if(i+1 < argc){
+					clusterFilterIDsFile = argv[i+1];
+					i++;
+				} else {
+					std::cerr << "-clusterfilterIDsFile option requires one argument";
+				}
+			}else if (std::string(argv[i]) == "clusterfilterSizeFile"){
+
+				if (i+1 < argc){
+					clusterFilterSizeFile = argv[i+1];
+					i++;
+				} else {
+					std::cerr << "-clusterfilterSizeFile option requires one argument";
+				}
+			}else{
 			// error, none of the above.
 
 			std::cerr << "input not in valid format";
@@ -138,30 +219,45 @@ int main(int argc, char* argv[]) {
 	clock_t t1,t2;
 	t1=clock();
 	    //code goes here
+	std::vector<int> limits;
+	if (nindex != -1000){
+		limits = readIndices(indexfile,nindex);
+	}
 
-
-	if (nindex == -1000){
+	if ((nindex == -1000) && (VIfilter == false) && (clusterFilter == false)){
 		// no index pair given. Running full search.
-		//runFullSearch(inputfile, outputfile, nsamples, nvars, 0,printall,assoclevel);
-	} else {
+		runFullSearch(inputfile, outputfile, nsamples, nvars, 0,printall,assoclevel);
+	} else if (VIfilter == false && clusterFilter == false) {
 		// use nindex to find the 6 indices
 		std::vector<int> limits = readIndices(indexfile,nindex);
 		cout << "limits vector is" << std::endl;
 		for(int i=0; i<6; ++i)
 		  std::cout << limits[i] << ' ';
-
-
 		// then run full search indexes
-		//runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
-		//		limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
+		runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
+				limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
+	} else if (VIfilter){
+
+		std::vector<double> viDists = readviDistances(VIfilterfile);
+
+		runSearchVIFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
+				limits[2],limits[5],epsilon,printall,assoclevel,viDists);
+
+
+
+	} else if (clusterFilter){
+
+		std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile);
+		std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile);
+
+		runSearchClusterFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
+						limits[2],limits[5],printall,assoclevel,clusterIDs,clusterSizes);
 	}
 	t2=clock();
 	float diff ((float)t2-(float)t1);
 	float seconds = diff / CLOCKS_PER_SEC;
 
 	ofstream myfile ("statistics.txt");
-
-
 
 
 	cout << "running PAM now" << std::endl;

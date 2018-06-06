@@ -243,7 +243,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 	}
 }
 
-void runFullSimpleFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
+void runSearchVIFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
 		bool printall, double assocLevel, std::vector<double> viDists){
 
@@ -353,8 +353,8 @@ void runFullSimpleFilter(std::string filename, std::string outputFilename, int n
 
 
 
-void runFullClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
+void runSearchClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, int istart, int iend, int jstart, int jend, int kstart,int kend,
 		bool printall, double assocLevel, std::vector<int> clusterIDs, std::vector<int> clusterSizes){
 
 	double measure0sum = 0.0;
