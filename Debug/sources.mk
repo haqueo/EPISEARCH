@@ -26,4 +26,5 @@ SUBDIRS := \
 srcf/entropy \
 srcf \
 srcf/searchTools \
+srcf/utilities \
 

@@ -8,6 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include srcf/utilities/subdir.mk
 -include srcf/searchTools/subdir.mk
 -include srcf/entropy/subdir.mk
 -include srcf/subdir.mk

@@ -20,6 +20,7 @@ using namespace std;
 #include <iterator>
 #include <math.h>
 #include "../entropy/entropy.h"
+#include "../utilities/utilities.h"
 #include <kmedoids.h>
 using namespace cluster;
 /**
@@ -132,65 +133,6 @@ double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl
 
 
 /**
- * Reads in a genetic data file of the form nrows x nvar
- *
- * @param filename The File to be read in
- * @param nrows The number of rows in the .txt
- * @param nvars The number of columns in the.txt
- *
- * @return Pointer to the data in a 1D format, column first.
- */
-std::vector<int> readData(std::string filename, int nrows, int nvars){
-
-	const int datasize = nvars*nrows;
-	static std::vector<int> data(datasize);
-	static std::vector<int> dataReal(datasize);
-
-    std::fstream myfile(filename.c_str(), std::ios_base::in);
-    int a;
-
-    // read in the data as is.
-    for(int i =0; i< datasize;i++){
-    	myfile >> a;
-    	data[i] = a;
-    }
-
-    // need to transform the data so it's column first.
-    for(int s = 0; s < nrows; s++){
-    	for (int i = 0; i<nvars;i++){
-    		dataReal[s+i*nrows] = data[i+s*nvars];
-    	}
-    }
-	return dataReal;
-
-}
-
-/**
- * Read in the n'th index pair from indexes.txt
- *
- * @param filename The location of indexes.txt
- * @param n How many lines down to get indices from
- *
- * @return The n'th line from indexes.txt
- */
-std::vector<int> readIndices(std::string filename, int n){
-
-	std::ifstream infile(filename.c_str());
-	std::string s;
-	std::vector<int> indexes;
-
-   //skip N lines
-   for(int i = 0; i < n; ++i){
-	   std::getline(infile, s);
-   }
-
-   std::replace( s.begin(), s.end(), ',', ' ' );
-   stringstream ss(s);
-   copy(istream_iterator<int>(ss), istream_iterator<int>(), back_inserter(indexes));
-
-   return indexes;
-}
-/**
  * Run through all of the triples of the dataset, calculating measures for each triple.
  *
  * @param filename The filename for the genetic dataset
@@ -295,7 +237,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 		myfile2 << "VIcSum " << measure4sum << std::endl;
 		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
 
-		myfile2 << "iterations:" << iterations << std::endl;
+		myfile2 << "iterations: " << iterations << std::endl;
 
 		myfile2.close();
 	}
@@ -303,7 +245,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 void runFullSimpleFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
-		bool printall, double assocLevel,std::vector<double> viDists){
+		bool printall, double assocLevel, std::vector<double> viDists){
 
 
 	double measure0sum = 0.0;
@@ -318,7 +260,7 @@ void runFullSimpleFilter(std::string filename, std::string outputFilename, int n
 	double measure4squaredsum = 0.0;
 	int iterations = 0;
 
-
+	std::vector<double>::iterator bin;
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -369,8 +311,9 @@ void runFullSimpleFilter(std::string filename, std::string outputFilename, int n
 				kstartcandidate = j+1;
 			}
 
-			kstartreal = std::upper_bound(viDists.begin() + kstartcandidate,viDists.end(),
-					epsilon - viDists[i] - viDists[j]);
+			bin = std::upper_bound(viDists.begin() + kstartcandidate, viDists.end(), epsilon - viDists[i] - viDists[j]);
+
+			kstartreal = bin - viDists.begin();
 
 		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
 						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
@@ -407,9 +350,8 @@ void runFullSimpleFilter(std::string filename, std::string outputFilename, int n
 	}
 }
 
-int getCluster(int iter, std::vector<int> clusterIDs, std::vector<int> clusterSizes){
-	return -1;
-}
+
+
 
 void runFullClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
@@ -427,6 +369,10 @@ void runFullClusterFilter(std::string filename, std::string outputFilename, int 
 	double measure4squaredsum = 0.0;
 	int iterations = 0;
 
+	int numClusters = clusterSizes.size();
+	int iUpperLim = getIndexNextCluster(numClusters - 3,clusterIDs,clusterSizes,numClusters,nvars); // upper limit i exclusive
+	int jUpperLim = getIndexNextCluster(numClusters - 2,clusterIDs,clusterSizes,numClusters,nvars); // upper limit j exclusive
+	int kUpperLim = nvars-1;
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -458,17 +404,22 @@ void runFullClusterFilter(std::string filename, std::string outputFilename, int 
 		v[1] = -1;
 
 		if (i == istart){
-			if(getCluster(i,clusterIDs,clusterSizes) == getCluster(jstart,clusterIDs,clusterSizes)){
-				jstartreal = getCluster(i,clusterIDs,clusterSizes) + 1;
+			//if(getCluster(i,clusterIDs,clusterSizes) == getCluster(jstart,clusterIDs,clusterSizes)){
+			if(clusterIDs[i] == clusterIDs[jstart]){
+
+			//jstartreal = getCluster(i,clusterIDs,clusterSizes) + 1;
+			jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
 			} else {
 				jstartreal = jstart;
 			}
 
 
 		} else {
-			if(getCluster(i,clusterIDs,clusterSizes) == getCluster(i+1,clusterIDs,clusterSizes)){
+			//if(getCluster(i,clusterIDs,clusterSizes) == getCluster(i+1,clusterIDs,clusterSizes)){
 				//TODO: this if condition can be simplified in terms of clusterSizes and clusterIDs
-				jstartreal=getCluster(i,clusterIDs,clusterSizes) + 1;
+			if(clusterIDs[i] == clusterIDs[i+1]){
+				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
+			//jstartreal=getCluster(i,clusterIDs,clusterSizes) + 1;
 			} else{
 				jstartreal = i+1;
 			}
@@ -483,16 +434,20 @@ void runFullClusterFilter(std::string filename, std::string outputFilename, int 
 					v[0] = -1;
 
 					if (j == jstart){
-						if(getCluster(j,clusterIDs,clusterSizes) == getCluster(kstart,clusterIDs,clusterSizes)){
-							jstartreal = getCluster(j,clusterIDs,clusterSizes) + 1;
+						if(clusterIDs[j] == clusterIDs[kstart]){
+						// jstartreal = getCluster(j,clusterIDs,clusterSizes) + 1;
+							//jstartreal = clusterIDs[j] + 1;
+							kstartreal = getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
 						} else {
 							kstartreal = kstart;
 						}
 
 					} else {
 
-						if (getCluster(j,clusterIDs,clusterSizes) == getCluster(j+1,clusterIDs,clusterSizes)){
-							kstartreal=getCluster(j,clusterIDs,clusterSizes) + 1;
+						// if (getCluster(j,clusterIDs,clusterSizes) == getCluster(j+1,clusterIDs,clusterSizes)){
+							if(clusterIDs[j] == clusterIDs[j+1]){
+							kstartreal=getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
+									//getCluster(j,clusterIDs,clusterSizes) + 1;
 						} else{
 							kstartreal = j+1;
 						}
@@ -526,7 +481,7 @@ void runFullClusterFilter(std::string filename, std::string outputFilename, int 
 						measure4squaredsum+=pow(*(measureArray+4),2);
 						iterations++;
 
-						Done = (i >= iend) && (j >= jend) && (k >= kend);
+						Done = (i >= iend) && (j >= jend) && (k >= kend) && (i < iUpperLim) && (j < jUpperLim);
 
 		}
 	}
@@ -676,7 +631,7 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 		myfile2 << "VIcSum " << measure4sum << std::endl;
 		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
 
-		myfile2 << "iterations:" << iterations << std::endl;
+		myfile2 << "iterations: " << iterations << std::endl;
 
 			myfile2.close();
 		}
