@@ -243,8 +243,6 @@ int main(int argc, char* argv[]) {
 		runSearchVIFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
 				limits[2],limits[5],epsilon,printall,assoclevel,viDists);
 
-
-
 	} else if (clusterFilter){
 
 		cout << "I got here, cluster filter section"<< std::endl;
@@ -262,14 +260,14 @@ int main(int argc, char* argv[]) {
 	ofstream myfile ("statistics.txt");
 
 
-//	cout << "running PAM now" << std::endl;
-//
-//	runPAM(inputfile,"clusters.txt",nsamples,nvars,200);
-//
-//	if (myfile.is_open()){
-//		myfile << "time taken: "<< seconds << " s";
-//		myfile.close();
-//	}
+	//cout << "running PAM now" << std::endl;
+
+	//runPAM(inputfile,"clustersMold.txt",nsamples,nvars,200);
+
+	if (myfile.is_open()){
+		myfile << "time taken: "<< seconds << " s";
+		myfile.close();
+	}
 
 
 	return 0;
