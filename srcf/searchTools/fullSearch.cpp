@@ -245,7 +245,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 void runSearchVIFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
-		bool printall, double assocLevel, std::vector<double> viDists){
+		bool printall, double assocLevel, std::vector<double> &viDists){
 
 
 	double measure0sum = 0.0;
@@ -261,6 +261,8 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 	int iterations = 0;
 
 	std::vector<double>::iterator bin;
+
+
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -283,7 +285,7 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 	int kstartcandidate;
 	int kstartreal;
 
-	for (int i = istart; !Done; i++){
+	for (int i = istart; (i <= iend) && !Done; i++){
 		v[0] = i;
 		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
 		v[1] = nvars-1;
@@ -298,6 +300,8 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 			jstartreal = i+1;
 		}
 
+		cout << "i is " << i << std::endl;
+
 		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
 
 			v[0] = j;
@@ -311,11 +315,21 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 				kstartcandidate = j+1;
 			}
 
+			viDists.begin();
 			bin = std::upper_bound(viDists.begin() + kstartcandidate, viDists.end(), epsilon - viDists[i] - viDists[j]);
-
 			kstartreal = bin - viDists.begin();
 
+
+			cout << "epsilon is " << epsilon <<std::endl;
+			cout << "i is " << i << std::endl;
+			cout << "viDists[i] is " << viDists[i] << std::endl;
+			cout << "j is " << j << std::endl;
+			cout << "viDists[j] is " << viDists[j] <<std::endl;
+			cout << "kstartreal is " << kstartreal <<std::endl;
+
 		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
+
+
 						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 								nsamples, nvars, c, Hcl, Hp1cl);
 
@@ -347,7 +361,34 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 				}
 			}
 		}
+	myfile.close();
 	}
+		else {
+			cout << "Unable to open file";
+		}
+		ofstream myfile2 ("means.txt");
+
+		if (myfile2.is_open()){
+			myfile2 << "IGStrictSum " << measure0sum << std::endl;
+			myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
+
+			myfile2 << "IGAltSum: " << measure1sum << std::endl;
+			myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
+
+			myfile2 << "IGSum " << measure2sum << std::endl;
+			myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
+
+			myfile2 << "VIpSum " << measure3sum << std::endl;
+			myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
+
+			myfile2 << "VIcSum " << measure4sum << std::endl;
+			myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
+
+			myfile2 << "iterations: " << iterations << std::endl;
+
+			myfile2.close();
+		}
+
 }
 
 
@@ -355,7 +396,7 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 
 void runSearchClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend,
-		bool printall, double assocLevel, std::vector<int> clusterIDs, std::vector<int> clusterSizes){
+		bool printall, double assocLevel, const std::vector<int> &clusterIDs, const std::vector<int> &clusterSizes){
 
 	double measure0sum = 0.0;
 	double measure0squaredsum = 0.0;
@@ -369,7 +410,7 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 	double measure4squaredsum = 0.0;
 	int iterations = 0;
 
-	int numClusters = clusterSizes.size();
+	int numClusters = (clusterSizes).size();
 	int iUpperLim = getIndexNextCluster(numClusters - 3,clusterIDs,clusterSizes,numClusters,nvars); // upper limit i exclusive
 	int jUpperLim = getIndexNextCluster(numClusters - 2,clusterIDs,clusterSizes,numClusters,nvars); // upper limit j exclusive
 	int iTrueUpperLim = min(iUpperLim,iend);
@@ -413,7 +454,9 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 			if(clusterIDs[i] == clusterIDs[jstart]){
 
 			//jstartreal = getCluster(i,clusterIDs,clusterSizes) + 1;
-			jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
+
+
+				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
 			} else {
 				jstartreal = jstart;
 			}
@@ -460,6 +503,10 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 					}
 		// found kstartreal
 		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
+
+			// calculating
+			cout << "calculating: (i,j,k) = " << i << "," <<j <<","<< k << std::endl;
+
 						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 								nsamples, nvars, c, Hcl, Hp1cl);
 
@@ -486,13 +533,38 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 						measure4squaredsum+=pow(*(measureArray+4),2);
 						iterations++;
 
-						cout << "I got to end" << std::endl;
+
 
 						Done = (i >= iTrueUpperLim) && (j >= jTrueUpperLim) && (k >= kTrueUpperLim);
 
 		}
 	}
 	}
+		myfile.close();
+} else {
+		cout << "Unable to open file";
+	}
+	ofstream myfile2 ("means.txt");
+
+	if (myfile2.is_open()){
+		myfile2 << "IGStrictSum " << measure0sum << std::endl;
+		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
+
+		myfile2 << "IGAltSum: " << measure1sum << std::endl;
+		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
+
+		myfile2 << "IGSum " << measure2sum << std::endl;
+		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
+
+		myfile2 << "VIpSum " << measure3sum << std::endl;
+		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
+
+		myfile2 << "VIcSum " << measure4sum << std::endl;
+		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
+
+		myfile2 << "iterations: " << iterations << std::endl;
+
+		myfile2.close();
 	}
 
 	}
@@ -650,7 +722,7 @@ void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, 
 	std::vector<int> d = readData(datafile,nsamples,nvars);
 	const int* dnew = d.data();
 
-	const int snpsNum = nvars - 1;
+	const int snpsNum = nvars-1;
 
 	kmedoids a;
 

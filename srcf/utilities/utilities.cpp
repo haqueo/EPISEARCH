@@ -30,6 +30,7 @@ using namespace std;
  */
 std::vector<int> readData(std::string filename, int nrows, int nvars){
 
+	// allocate on heap
 	const int datasize = nvars*nrows;
 	static std::vector<int> data(datasize);
 	static std::vector<int> dataReal(datasize);
@@ -82,41 +83,53 @@ std::vector<int> readIndices(std::string filename, int n){
 }
 
 
-std::vector<double> readviDistances(std::string filename){
+std::vector<double> readviDistances(std::string filename,int nvars){
 	std::ifstream ifile(filename.c_str(), std::ios::in);
-	std::vector<double> viDists;
+	const int snps = nvars - 1;
+	static std::vector<double> viDists(snps);
+
+	cout << "filename is " << filename << std::endl;
 
     double num = 0.0;
-    //keep storing values from the text file so long as data exists:
-    while (ifile >> num) {
-        viDists.push_back(num);
+
+    for(int i = 0; i < snps; i++){
+    	ifile >> num;
+		viDists[i] = num;
     }
+
 
     return viDists;
 
 }
 
 
-std::vector<int> readClusterIDs(std::string filename){
+std::vector<int> readClusterIDs(std::string filename, int nvars){
 
 	std::ifstream ifile(filename.c_str(),std::ios::in);
-	std::vector<int> clusterIDs;
+	const int snps = nvars-1;
+	static std::vector<int> clusterIDs(snps);
 
 	int num = 0;
-	while(ifile >> num){
-		clusterIDs.push_back(num);
+
+	for(int i = 0; i< snps; i++){
+		ifile >> num;
+		clusterIDs[i] = num;
 	}
+
 	cout << "finished reading clusterIDs" <<std::endl;
 	return clusterIDs;
 }
 
-std::vector<int> readClusterSizes(std::string filename){
+std::vector<int> readClusterSizes(std::string filename, int numClusters){
 	std::ifstream ifile(filename.c_str(),std::ios::in);
-	std::vector<int> clusterSizes;
+	const int numClustersConst = numClusters;
+	static std::vector<int> clusterSizes(numClustersConst);
 
 	int num = 0;
-	while(ifile >> num){
-		clusterSizes.push_back(num);
+
+	for (int i = 0; i < numClusters; i++){
+		ifile >> num;
+		clusterSizes[i] = num;
 	}
 	cout << "finished reading clusterSizes" << std::endl;
 
@@ -128,9 +141,8 @@ std::vector<int> readClusterSizes(std::string filename){
 // Get the index of the first element in the next cluster. If we're currently in the last
 // cluster, return a number greater than the amount of SNPs. The sanity check
 // in the "Done" variable will prevent further iterations.
-int getIndexNextCluster(int thisClusterID, std::vector<int> clusterIDs, std::vector<int> clusterSizes,
+int getIndexNextCluster(int thisClusterID, const std::vector<int> &clusterIDs, const std::vector<int> &clusterSizes,
 		int numClusters, int nvars){
-
 
 	if(thisClusterID == numClusters-1){
 		return nvars+1;

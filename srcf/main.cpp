@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 	if (argc < 6){
 		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples "
 				"-nvars -nindex -indexfile -printall -assoclevel -VIfilter -VIfilterfile -epsilon"
-				" -clusterfilter -clusterfilterIDsFile -clusterfilterSizeFile" <<
+				" -clusterfilter -clusterfilterIDsFile -clusterfilterSizeFile -numClusters" <<
 				std::endl;
 		return 1;
 	}
@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 	bool clusterFilter = false;
 	std::string clusterFilterIDsFile = "";
 	std::string clusterFilterSizeFile = "";
+	int numClusters = -1;
 
 	cout << "argc is " << argc << std::endl;
 
@@ -208,6 +209,15 @@ int main(int argc, char* argv[]) {
 				} else {
 					std::cerr << "-clusterfilterSizeFile option requires one argument";
 				}
+			}else if (std::string(argv[i]) == "-numClusters"){
+				if (i+1 < argc){
+					std::istringstream iss(argv[i+1]);
+					iss >> numClusters;
+					i++;
+				} else {
+					std::cerr << "-numClusters option requires one argument" << std::endl;
+					return 1;
+				}
 			}else{
 			// error, none of the above.
 				std::cerr << std::string(argv[i]) << std::endl;
@@ -221,7 +231,9 @@ int main(int argc, char* argv[]) {
 	    //code goes here
 	std::vector<int> limits;
 	if (nindex != -1000){
+
 		limits = readIndices(indexfile,nindex);
+
 	}
 
 	if ((nindex == -1000) && (VIfilter == false) && (clusterFilter == false)){
@@ -231,15 +243,22 @@ int main(int argc, char* argv[]) {
 		// use nindex to find the 6 indices
 		std::vector<int> limits = readIndices(indexfile,nindex);
 		cout << "limits vector is" << std::endl;
-		for(int i=0; i<6; ++i)
+		for(int i=0; i<6; ++i){
 		  std::cout << limits[i] << ' ';
+		}
 		// then run full search indexes
 		runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
 				limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
 	} else if (VIfilter){
+		cout << "limits vector is" << std::endl;
+			for(int i=0; i<6; ++i){
+			  std::cout << limits[i] << ' ';
+			}
 
-		std::vector<double> viDists = readviDistances(VIfilterfile);
-
+		cout << "I got to the correct branch" << std::endl;
+		std::vector<double> viDists = readviDistances(VIfilterfile,nvars);
+		cout << "I managed to read in the distances" << std::endl;
+		cout <<" viDists[10] is "<< viDists[10] << std::endl;
 		runSearchVIFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
 				limits[2],limits[5],epsilon,printall,assoclevel,viDists);
 
@@ -247,8 +266,16 @@ int main(int argc, char* argv[]) {
 
 		cout << "I got here, cluster filter section"<< std::endl;
 
-		std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile);
-		std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile);
+		std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,numClusters);
+		std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile,numClusters);
+
+		cout << "clusterIDs[10] is " << clusterIDs[10] << std::endl;
+		cout << "clusterSizes[10] " << clusterSizes[10] << std::endl;
+
+		cout << "limits vector is" << std::endl;
+					for(int i=0; i<6; ++i){
+					  std::cout << limits[i] << ' ';
+					}
 
 		runSearchClusterFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
 						limits[2],limits[5],printall,assoclevel,clusterIDs,clusterSizes);
@@ -262,8 +289,8 @@ int main(int argc, char* argv[]) {
 
 	//cout << "running PAM now" << std::endl;
 
-	//runPAM(inputfile,"clustersMold.txt",nsamples,nvars,200);
-
+	//runPAM(inputfile,"clustersMoldNew2.txt",nsamples,nvars,200);
+//
 	if (myfile.is_open()){
 		myfile << "time taken: "<< seconds << " s";
 		myfile.close();
