@@ -10,7 +10,8 @@
 #include <sstream>
 #include <time.h>
 
-#include "searchTools/fullSearch.h"
+#include "searchTools/searchTools.h"
+
 #include "utilities/utilities.h"
 
 using namespace std;

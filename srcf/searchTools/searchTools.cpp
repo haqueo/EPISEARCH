@@ -23,6 +23,9 @@ using namespace std;
 #include "../utilities/utilities.h"
 #include <kmedoids.h>
 using namespace cluster;
+
+
+
 /**
     Returns an array of information theoretic measures
 
@@ -119,18 +122,17 @@ double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl
 	// calculation of the measures
 	double IG_strict = Ip1p2p3 - max(IGp1p2,0.0) - max(IGp1p3,0.0) - max(IGp2p3,0.0) - Ip1 - Ip2 - Ip3;
 	double IG_alt = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3 - Ip1 - Ip2 - Ip3;
-	double IG_new = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3;
+	double IG_easy = Ip1p2p3 - IGp1p2 - IGp1p3 - IGp2p3;
 	double VIp = VIp1p2 + VIp1p3 + VIp2p3;
 	double VIc = VIp1cl + VIp2cl + VIp3cl;
 
 	final[0] = IG_strict;
 	final[1] = IG_alt;
-	final[2] = IG_new;
+	final[2] = IG_easy;
 	final[3] = VIp;
 	final[4] = VIc;
 	return final;
 }
-
 
 /**
  * Run through all of the triples of the dataset, calculating measures for each triple.
@@ -189,16 +191,8 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
-				if (printall){
-				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-						"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-						*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-				} else if (*(measureArray+0) > assocLevel*Hcl){
-
-				myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-										"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-										*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-			}
+					printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
+							measureArray);
 
 				measure0sum+=*(measureArray+0);
 				measure0squaredsum+=pow(*(measureArray+0),2);
@@ -219,29 +213,11 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 	} else {
 		cout << "Unable to open file";
 	}
-	ofstream myfile2 ("means.txt");
-
-	if (myfile2.is_open()){
-		myfile2 << "IGStrictSum " << measure0sum << std::endl;
-		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
-
-		myfile2 << "IGAltSum: " << measure1sum << std::endl;
-		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
-
-		myfile2 << "IGSum " << measure2sum << std::endl;
-		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
-
-		myfile2 << "VIpSum " << measure3sum << std::endl;
-		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
-
-		myfile2 << "VIcSum " << measure4sum << std::endl;
-		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
-
-		myfile2 << "iterations: " << iterations << std::endl;
-
-		myfile2.close();
-	}
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 }
+
 
 void runSearchVIFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
@@ -333,15 +309,8 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 								nsamples, nvars, c, Hcl, Hp1cl);
 
-						if (printall){
-							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-						} else if (*(measureArray+0) > assocLevel*Hcl){
-							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-						}
+						printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
+													measureArray);
 
 						// TODO: add overflow protection
 						measure0sum+=*(measureArray+0);
@@ -366,29 +335,9 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 		else {
 			cout << "Unable to open file";
 		}
-		ofstream myfile2 ("means.txt");
-
-		if (myfile2.is_open()){
-			myfile2 << "IGStrictSum " << measure0sum << std::endl;
-			myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
-
-			myfile2 << "IGAltSum: " << measure1sum << std::endl;
-			myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
-
-			myfile2 << "IGSum " << measure2sum << std::endl;
-			myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
-
-			myfile2 << "VIpSum " << measure3sum << std::endl;
-			myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
-
-			myfile2 << "VIcSum " << measure4sum << std::endl;
-			myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
-
-			myfile2 << "iterations: " << iterations << std::endl;
-
-			myfile2.close();
-		}
-
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 }
 
 
@@ -510,15 +459,8 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 								nsamples, nvars, c, Hcl, Hp1cl);
 
-						if (printall){
-							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-						} else if (*(measureArray+0) > assocLevel*Hcl){
-							myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-													"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-													*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-						}
+						printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
+													measureArray);
 
 						// TODO: add overflow protection
 						measure0sum+=*(measureArray+0);
@@ -544,30 +486,12 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 } else {
 		cout << "Unable to open file";
 	}
-	ofstream myfile2 ("means.txt");
-
-	if (myfile2.is_open()){
-		myfile2 << "IGStrictSum " << measure0sum << std::endl;
-		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
-
-		myfile2 << "IGAltSum: " << measure1sum << std::endl;
-		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
-
-		myfile2 << "IGSum " << measure2sum << std::endl;
-		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
-
-		myfile2 << "VIpSum " << measure3sum << std::endl;
-		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
-
-		myfile2 << "VIcSum " << measure4sum << std::endl;
-		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
-
-		myfile2 << "iterations: " << iterations << std::endl;
-
-		myfile2.close();
-	}
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 
 	}
+
 
 
 /**
@@ -659,15 +583,8 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
-				if (printall){
-					myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-											"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-											*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-				} else if (*(measureArray+0) > assocLevel*Hcl){
-					myfile << "(" << i << "," << j << ","<< k << "): " << *(measureArray+0) <<
-											"	"<< *(measureArray+1) <<"	"<< *(measureArray+2) <<"	"<<
-											*(measureArray+3) << "	"<< *(measureArray+4) << "\n";
-				}
+				printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
+											measureArray);
 
 				// TODO: add overflow protection
 				measure0sum+=*(measureArray+0);
@@ -691,29 +608,9 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 	} else {
 		cout << "Unable to open file";
 	}
-	ofstream myfile2 ("means.txt");
-
-	if (myfile2.is_open()){
-
-		myfile2 << "IGStrictSum " << measure0sum << std::endl;
-		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
-
-		myfile2 << "IGAltSum: " << measure1sum << std::endl;
-		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
-
-		myfile2 << "VIpSum " << measure3sum << std::endl;
-		myfile2 << "VIpSquaredSum " << measure3squaredsum<< std::endl;
-
-		myfile2 << "IGSum " << measure2sum << std::endl;
-		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
-
-		myfile2 << "VIcSum " << measure4sum << std::endl;
-		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
-
-		myfile2 << "iterations: " << iterations << std::endl;
-
-			myfile2.close();
-		}
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 }
 
 

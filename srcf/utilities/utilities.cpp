@@ -158,3 +158,40 @@ int getIndexNextCluster(int thisClusterID, const std::vector<int> &clusterIDs, c
 
 }
 
+void writeStatistics(double measure0sum, double measure0squaredsum,
+		double measure1sum, double measure1squaredsum, double measure2sum,
+		double measure2squaredsum, double measure3sum,
+		double measure3squaredsum, double measure4sum,
+		double measure4squaredsum, int iterations) {
+	ofstream myfile2("means.txt");
+	if (myfile2.is_open()) {
+		myfile2 << "IGStrictSum " << measure0sum << std::endl;
+		myfile2 << "IGStrictSquaredSum " << measure0squaredsum << std::endl;
+		myfile2 << "IGAltSum: " << measure1sum << std::endl;
+		myfile2 << "IGAltSquaredSum " << measure1squaredsum << std::endl;
+		myfile2 << "IGSum " << measure2sum << std::endl;
+		myfile2 << "IGSquaredSum " << measure2squaredsum << std::endl;
+		myfile2 << "VIpSum " << measure3sum << std::endl;
+		myfile2 << "VIpSquaredSum " << measure3squaredsum << std::endl;
+		myfile2 << "VIcSum " << measure4sum << std::endl;
+		myfile2 << "VIcSquaredSum " << measure4squaredsum << std::endl;
+		myfile2 << "iterations: " << iterations << std::endl;
+		myfile2.close();
+	}
+}
+
+void printMeasures(bool printall, const ofstream& myfile, int i, int j, int k,
+		double assocLevel, double Hcl, double* measureArray) {
+	if (printall) {
+		myfile << "(" << i << "," << j << "," << k << "): "
+				<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+				<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+				<< *(measureArray + 4) << "\n";
+	} else if (*(measureArray + 0) > assocLevel * Hcl) {
+		myfile << "(" << i << "," << j << "," << k << "): "
+				<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+				<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+				<< *(measureArray + 4) << "\n";
+	}
+}
+
