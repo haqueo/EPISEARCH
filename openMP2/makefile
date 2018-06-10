@@ -4,7 +4,7 @@
 
 -include ../makefile.init
 
-RM := rm -rf
+RM := rm
 
 # All of the sources participating in the build are defined here
 -include sources.mk
@@ -12,6 +12,10 @@ RM := rm -rf
 -include srcf/searchTools/subdir.mk
 -include srcf/entropy/subdir.mk
 -include srcf/subdir.mk
+-include Test/src/subdir.mk
+-include Release/src/subdir.mk
+-include Debug/srcf/entropy/subdir.mk
+-include Debug/srcf/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -28,11 +32,11 @@ endif
 ifneq ($(strip $(CXX_DEPS)),)
 -include $(CXX_DEPS)
 endif
-ifneq ($(strip $(CPP_DEPS)),)
--include $(CPP_DEPS)
-endif
 ifneq ($(strip $(C_DEPS)),)
 -include $(C_DEPS)
+endif
+ifneq ($(strip $(CPP_DEPS)),)
+-include $(CPP_DEPS)
 endif
 endif
 
@@ -46,14 +50,14 @@ all: EPISEARCH
 # Tool invocations
 EPISEARCH: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
-	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/Users/Omar/Documents/Year4/M4R/googletest/build/googlemock/gtest -L/opt/local/include -L/Users/Omar/Documents/Year4/M4R/muster/src -o "EPISEARCH" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Invoking: Cross G++ Linker'
+	g++  -o "EPISEARCH" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(C_UPPER_DEPS)$(CXX_DEPS)$(OBJS)$(CPP_DEPS)$(C_DEPS) EPISEARCH
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(C_DEPS)$(CPP_DEPS) EPISEARCH
 	-@echo ' '
 
 .PHONY: all clean dependents

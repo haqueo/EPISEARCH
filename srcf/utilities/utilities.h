@@ -24,7 +24,5 @@ void writeStatistics(double measure0sum, double measure0squaredsum,
 		double measure2squaredsum, double measure3sum,
 		double measure3squaredsum, double measure4sum,
 		double measure4squaredsum, int iterations);
-void printMeasures(bool printall, const std::ofstream& myfile, int i, int j, int k,
-		double assocLevel, double Hcl, double* measureArray);
 
 #endif /* UTILITIES_UTILITIES_H_ */

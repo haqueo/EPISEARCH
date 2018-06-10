@@ -1,9 +1,9 @@
 //============================================================================
-// Name        : fullSearch.cpp
+// Name        : searchTools.cpp
 // Author      : Omar Haque
-// Version     : 1.0
-// Copyright   : MIT
-// Description : The tools used to compute the search
+// Version     : 2.0
+// Copyright   : ECL-2.0
+// Description : The main tools and search algorithms.
 //============================================================================
 
 #include <iostream>
@@ -19,10 +19,10 @@ using namespace std;
 #include <sstream>
 #include <iterator>
 #include <math.h>
+#include <mpi.h>
+#include <stdio.h>
 #include "../entropy/entropy.h"
 #include "../utilities/utilities.h"
-#include <kmedoids.h>
-using namespace cluster;
 
 
 
@@ -146,15 +146,15 @@ double *calculateMeasures(int p1, double Hp1, int p2, double Hp2, int p3, int cl
  * @param assocLevel If printall is false, measures are printed if IGStrict > assocLevel*H(CL)
  */
 void runFullSearch(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, bool printall, double assocLevel){
+		int c, bool printall, double assocLevel, int numThread = 1){
 
+	// initialise variables
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	const int* p = d.data();
 	int v[4] = {-1,-1,-1,-1};
 	v[0] = nvars-1;
 	double Hcl = entropyFast(p,nsamples,nvars,c,v);
 	v[0] = -1;
-
 	double measure0sum = 0.0;
 	double measure0squaredsum = 0.0;
 	double measure1sum = 0.0;
@@ -172,6 +172,7 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 	if (myfile.is_open()){
 
+	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v) num_threads(numThread)
 	for (int i = 0; i < nvars-3;i++){
 		v[0] = i;
 		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
@@ -191,8 +192,18 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
-					printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
-							measureArray);
+				if (printall) {
+					myfile << "(" << i << "," << j << "," << k << "): "
+							<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+							<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+							<< *(measureArray + 4) << "\n";
+				} else if (*(measureArray + 0) > assocLevel * Hcl) {
+					myfile << "(" << i << "," << j << "," << k << "): "
+							<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+							<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+							<< *(measureArray + 4) << "\n";
+				}
+
 
 				measure0sum+=*(measureArray+0);
 				measure0squaredsum+=pow(*(measureArray+0),2);
@@ -217,282 +228,6 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
 			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 }
-
-
-void runSearchVIFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
-		bool printall, double assocLevel, std::vector<double> &viDists){
-
-
-	double measure0sum = 0.0;
-	double measure0squaredsum = 0.0;
-	double measure1sum = 0.0;
-	double measure1squaredsum = 0.0;
-	double measure2sum = 0.0;
-	double measure2squaredsum = 0.0;
-	double measure3sum = 0.0;
-	double measure3squaredsum = 0.0;
-	double measure4sum = 0.0;
-	double measure4squaredsum = 0.0;
-	int iterations = 0;
-
-	std::vector<double>::iterator bin;
-
-
-
-	std::vector<int> d = readData(filename, nsamples, nvars);
-	// read in the array of indexes through filenameIndexes
-
-	const int* p = d.data();
-	// sorted dataframe
-	int v[4] = {-1,-1,-1,-1};
-	v[0] = nvars-1;
-
-	double Hcl = entropyFast(p,nsamples,nvars,c,v);
-	v[0] = -1;
-
-	ofstream myfile (outputFilename.c_str());
-
-	bool Done = false;
-
-	if (myfile.is_open()){
-
-	int jstartreal;
-	int kstartcandidate;
-	int kstartreal;
-
-	for (int i = istart; (i <= iend) && !Done; i++){
-		v[0] = i;
-		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
-		v[1] = nvars-1;
-		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
-
-		v[0] = -1;
-		v[1] = -1;
-
-		if (i == istart){
-			jstartreal = jstart;
-		} else {
-			jstartreal = i+1;
-		}
-
-		cout << "i is " << i << std::endl;
-
-		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
-
-			v[0] = j;
-			double Hp2 = entropyFast(p,nsamples,nvars,c,v);
-			v[0] = -1;
-
-
-			if (j == jstart){
-				kstartcandidate = kstart;
-			} else {
-				kstartcandidate = j+1;
-			}
-
-			viDists.begin();
-			bin = std::upper_bound(viDists.begin() + kstartcandidate, viDists.end(), epsilon - viDists[i] - viDists[j]);
-			kstartreal = bin - viDists.begin();
-
-
-			cout << "epsilon is " << epsilon <<std::endl;
-			cout << "i is " << i << std::endl;
-			cout << "viDists[i] is " << viDists[i] << std::endl;
-			cout << "j is " << j << std::endl;
-			cout << "viDists[j] is " << viDists[j] <<std::endl;
-			cout << "kstartreal is " << kstartreal <<std::endl;
-
-		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
-
-
-						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
-								nsamples, nvars, c, Hcl, Hp1cl);
-
-						printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
-													measureArray);
-
-						// TODO: add overflow protection
-						measure0sum+=*(measureArray+0);
-						measure0squaredsum+=pow(*(measureArray+0),2);
-						measure1sum+=*(measureArray+1);
-						measure1squaredsum+=pow(*(measureArray+1),2);
-						measure2sum+=*(measureArray+2);
-						measure2squaredsum+=pow(*(measureArray+2),2);
-						measure3sum+=*(measureArray+3);
-						measure3squaredsum+=pow(*(measureArray+3),2);
-						measure4sum+=*(measureArray+4);
-						measure4squaredsum+=pow(*(measureArray+4),2);
-						iterations++;
-
-						Done = (i >= iend) && (j >= jend) && (k >= kend);
-
-				}
-			}
-		}
-	myfile.close();
-	}
-		else {
-			cout << "Unable to open file";
-		}
-	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
-			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
-			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
-}
-
-
-
-
-void runSearchClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
-		int c, int istart, int iend, int jstart, int jend, int kstart,int kend,
-		bool printall, double assocLevel, const std::vector<int> &clusterIDs, const std::vector<int> &clusterSizes){
-
-	double measure0sum = 0.0;
-	double measure0squaredsum = 0.0;
-	double measure1sum = 0.0;
-	double measure1squaredsum = 0.0;
-	double measure2sum = 0.0;
-	double measure2squaredsum = 0.0;
-	double measure3sum = 0.0;
-	double measure3squaredsum = 0.0;
-	double measure4sum = 0.0;
-	double measure4squaredsum = 0.0;
-	int iterations = 0;
-
-	int numClusters = (clusterSizes).size();
-	int iUpperLim = getIndexNextCluster(numClusters - 3,clusterIDs,clusterSizes,numClusters,nvars); // upper limit i exclusive
-	int jUpperLim = getIndexNextCluster(numClusters - 2,clusterIDs,clusterSizes,numClusters,nvars); // upper limit j exclusive
-	int iTrueUpperLim = min(iUpperLim,iend);
-	int jTrueUpperLim = min(jUpperLim,jend);
-	int kTrueUpperLim = min(nvars-2,kend);
-
-	cout << "iUpperLim is " <<iUpperLim <<std::endl;
-	cout << "jUpperLim is " << jUpperLim<<std::endl;
-
-	std::vector<int> d = readData(filename, nsamples, nvars);
-	// read in the array of indexes through filenameIndexes
-
-	const int* p = d.data();
-
-	int v[4] = {-1,-1,-1,-1};
-	v[0] = nvars-1;
-
-	double Hcl = entropyFast(p,nsamples,nvars,c,v);
-	v[0] = -1;
-
-	ofstream myfile (outputFilename.c_str());
-
-	bool Done = false;
-
-	if (myfile.is_open()){
-
-	int jstartreal;
-	int kstartreal;
-
-	for (int i = istart; (i < iend) && !Done; i++){
-		v[0] = i;
-		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
-		v[1] = nvars-1;
-		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
-
-		v[0] = -1;
-		v[1] = -1;
-
-		if (i == istart){
-			//if(getCluster(i,clusterIDs,clusterSizes) == getCluster(jstart,clusterIDs,clusterSizes)){
-			if(clusterIDs[i] == clusterIDs[jstart]){
-
-			//jstartreal = getCluster(i,clusterIDs,clusterSizes) + 1;
-
-
-				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
-			} else {
-				jstartreal = jstart;
-			}
-
-
-		} else {
-			//if(getCluster(i,clusterIDs,clusterSizes) == getCluster(i+1,clusterIDs,clusterSizes)){
-				//TODO: this if condition can be simplified in terms of clusterSizes and clusterIDs
-			if(clusterIDs[i] == clusterIDs[i+1]){
-				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
-			//jstartreal=getCluster(i,clusterIDs,clusterSizes) + 1;
-			} else{
-				jstartreal = i+1;
-			}
-
-		}
-
-		// jstartreal is done.
-		for (int j = jstartreal; (j < jend) && !Done; j++){
-
-					v[0] = j;
-					double Hp2 = entropyFast(p,nsamples,nvars,c,v);
-					v[0] = -1;
-
-					if (j == jstart){
-						if(clusterIDs[j] == clusterIDs[kstart]){
-						// jstartreal = getCluster(j,clusterIDs,clusterSizes) + 1;
-							//jstartreal = clusterIDs[j] + 1;
-							kstartreal = getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
-						} else {
-							kstartreal = kstart;
-						}
-
-					} else {
-
-						// if (getCluster(j,clusterIDs,clusterSizes) == getCluster(j+1,clusterIDs,clusterSizes)){
-							if(clusterIDs[j] == clusterIDs[j+1]){
-							kstartreal=getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
-									//getCluster(j,clusterIDs,clusterSizes) + 1;
-						} else{
-							kstartreal = j+1;
-						}
-
-					}
-		// found kstartreal
-		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
-
-			// calculating
-			cout << "calculating: (i,j,k) = " << i << "," <<j <<","<< k << std::endl;
-
-						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
-								nsamples, nvars, c, Hcl, Hp1cl);
-
-						printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
-													measureArray);
-
-						// TODO: add overflow protection
-						measure0sum+=*(measureArray+0);
-						measure0squaredsum+=pow(*(measureArray+0),2);
-						measure1sum+=*(measureArray+1);
-						measure1squaredsum+=pow(*(measureArray+1),2);
-						measure2sum+=*(measureArray+2);
-						measure2squaredsum+=pow(*(measureArray+2),2);
-						measure3sum+=*(measureArray+3);
-						measure3squaredsum+=pow(*(measureArray+3),2);
-						measure4sum+=*(measureArray+4);
-						measure4squaredsum+=pow(*(measureArray+4),2);
-						iterations++;
-
-
-
-						Done = (i >= iTrueUpperLim) && (j >= jTrueUpperLim) && (k >= kTrueUpperLim);
-
-		}
-	}
-	}
-		myfile.close();
-} else {
-		cout << "Unable to open file";
-	}
-	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
-			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
-			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
-
-	}
-
-
 
 /**
  * Run through specified indexes in the dataset, calculating measures for each triple.
@@ -583,8 +318,18 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 				double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
 						nsamples, nvars, c, Hcl, Hp1cl);
 
-				printMeasures(printall, myfile, i, j, k, assocLevel, Hcl,
-											measureArray);
+				if (printall) {
+					myfile << "(" << i << "," << j << "," << k << "): "
+							<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+							<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+							<< *(measureArray + 4) << "\n";
+				} else if (*(measureArray + 0) > assocLevel * Hcl) {
+					myfile << "(" << i << "," << j << "," << k << "): "
+							<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+							<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+							<< *(measureArray + 4) << "\n";
+				}
+
 
 				// TODO: add overflow protection
 				measure0sum+=*(measureArray+0);
@@ -599,7 +344,7 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 				measure4squaredsum+=pow(*(measureArray+4),2);
 				iterations++;
 
-				Done = (i >= iend) && (j >= jend) && (k >= kend);
+				Done = (i > iend) && (j > jend) && (k > kend);
 			}
 		}
 	}
@@ -613,53 +358,517 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 }
 
+void runSearchVIFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c,double epsilon,bool printall, double assocLevel, std::vector<double> &viDists,
+		int numThread = 1){
 
-void runPAM(std::string datafile, std::string outputClustersFile, int nsamples, int nvars, size_t k){
-	// run kmedoids on the small 100 site dataset
-	std::vector<int> d = readData(datafile,nsamples,nvars);
-	const int* dnew = d.data();
+// initialise variables
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
 
-	const int snpsNum = nvars-1;
+	std::vector<double>::iterator bin;
 
-	kmedoids a;
 
-	dissimilarity_matrix b (snpsNum,snpsNum);
 
-	int selTempNew[4] = {-1,-1,-1,-1};
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
 
-	// build dissimilarity matrix
+	const int* p = d.data();
+	// sorted dataframe
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
 
-	for (int i=0; i < snpsNum; i++){
-		selTempNew[0] = i;
-		double Hi = entropyFast(dnew,nsamples,nvars,0,selTempNew);
-		for (int j=0; j <=i; j++){
-			selTempNew[0] = j;
-			double Hj = entropyFast(dnew,nsamples,nvars,0,selTempNew);
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
 
-			selTempNew[0] = i;
-			selTempNew[1] = j;
-			double Hij = entropyFast(dnew,nsamples,nvars,0,selTempNew);
-			selTempNew[0] = -1;
-			selTempNew[1] = -1;
+	ofstream myfile (outputFilename.c_str());
 
-			b(i,j) = 2*Hij - Hi - Hj;
-			b(j,i) = b(i,j);
+
+
+	if (myfile.is_open()){
+
+	int jstartreal;
+	int kstartcandidate;
+	int kstartreal;
+
+	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v,bin,kstartreal) num_threads(numThread)
+	for (int i = 0; i < nvars-3; i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		for (int j = i+1; j < nvars-2; j++){
+
+			v[0] = j;
+			double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+			v[0] = -1;
+
+
+			bin = std::upper_bound(viDists.begin() + j+1, viDists.end(), epsilon - viDists[i] - viDists[j]);
+			kstartreal = bin - viDists.begin();
+
+
+		for(int k = kstartreal; k < nvars-1; k++){
+
+						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+								nsamples, nvars, c, Hcl, Hp1cl);
+
+						if (printall) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						} else if (*(measureArray + 0) > assocLevel * Hcl) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						}
+
+
+						// TODO: add overflow protection
+						measure0sum+=*(measureArray+0);
+						measure0squaredsum+=pow(*(measureArray+0),2);
+						measure1sum+=*(measureArray+1);
+						measure1squaredsum+=pow(*(measureArray+1),2);
+						measure2sum+=*(measureArray+2);
+						measure2squaredsum+=pow(*(measureArray+2),2);
+						measure3sum+=*(measureArray+3);
+						measure3squaredsum+=pow(*(measureArray+3),2);
+						measure4sum+=*(measureArray+4);
+						measure4squaredsum+=pow(*(measureArray+4),2);
+						iterations++;
+
+
+
+				}
+			}
 		}
+		myfile.close();
+		}
+			else {
+				cout << "Unable to open file";
+			}
+		writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+				measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+				measure3squaredsum, measure4sum, measure4squaredsum, iterations);
+	}
+
+void runSearchVIFilterIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
+		bool printall, double assocLevel, std::vector<double> &viDists){
+
+	// initialise variables
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
+
+	std::vector<double>::iterator bin;
+
+
+
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
+
+	const int* p = d.data();
+	// sorted dataframe
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
+
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
+
+	ofstream myfile (outputFilename.c_str());
+
+	bool Done = false;
+
+	if (myfile.is_open()){
+
+	int jstartreal;
+	int kstartcandidate;
+	int kstartreal;
+
+	for (int i = istart; (i <= iend) && !Done; i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		if (i == istart){
+			jstartreal = jstart;
+		} else {
+			jstartreal = i+1;
+		}
+
+
+
+		for (int j = jstartreal; (j < nvars-2) && !Done; j++){
+
+			v[0] = j;
+			double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+			v[0] = -1;
+
+
+			if (j == jstart){
+				kstartcandidate = kstart;
+			} else {
+				kstartcandidate = j+1;
+			}
+
+			viDists.begin();
+			bin = std::upper_bound(viDists.begin() + kstartcandidate, viDists.end(), epsilon - viDists[i] - viDists[j]);
+			kstartreal = bin - viDists.begin();
+
+
+
+
+		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
+
+
+						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+								nsamples, nvars, c, Hcl, Hp1cl);
+
+						if (printall) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						} else if (*(measureArray + 0) > assocLevel * Hcl) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						}
+
+
+						// TODO: add overflow protection
+						measure0sum+=*(measureArray+0);
+						measure0squaredsum+=pow(*(measureArray+0),2);
+						measure1sum+=*(measureArray+1);
+						measure1squaredsum+=pow(*(measureArray+1),2);
+						measure2sum+=*(measureArray+2);
+						measure2squaredsum+=pow(*(measureArray+2),2);
+						measure3sum+=*(measureArray+3);
+						measure3squaredsum+=pow(*(measureArray+3),2);
+						measure4sum+=*(measureArray+4);
+						measure4squaredsum+=pow(*(measureArray+4),2);
+						iterations++;
+
+						Done = (i > iend) && (j > jend) && (k > kend);
+
+				}
+			}
+		}
+	myfile.close();
+	}
+		else {
+			cout << "Unable to open file";
+		}
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
+}
+
+
+
+
+void runSearchClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, bool printall, double assocLevel, const std::vector<int> &clusterIDs,
+		const std::vector<int> &clusterSizes, int numThread){
+
+	// initialise variables
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
+
+	int numClusters = (clusterSizes).size();
+
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
+
+	const int* p = d.data();
+
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
+
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
+
+	ofstream myfile (outputFilename.c_str());
+
+	if (myfile.is_open()){
+
+	int jstartreal;
+	int kstartreal;
+
+	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v,jstartreal,kstartreal) num_threads(numThread)
+	for (int i = 0; i < nvars-3; i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		if(clusterIDs[i] == clusterIDs[i+1]){
+			jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
+
+		} else{
+			jstartreal = i+1;
+		}
+
+		for (int j = jstartreal; j < nvars-2; j++){
+
+					v[0] = j;
+					double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+					v[0] = -1;
+
+
+
+			if(clusterIDs[j] == clusterIDs[j+1]){
+					kstartreal=getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
+
+				} else{
+					kstartreal = j+1;
+				}
+
+
+
+		for(int k = kstartreal; k < nvars-1; k++){
+
+
+
+						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+								nsamples, nvars, c, Hcl, Hp1cl);
+
+						if (printall) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						} else if (*(measureArray + 0) > assocLevel * Hcl) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						}
+
+
+						// TODO: add overflow protection
+						measure0sum+=*(measureArray+0);
+						measure0squaredsum+=pow(*(measureArray+0),2);
+						measure1sum+=*(measureArray+1);
+						measure1squaredsum+=pow(*(measureArray+1),2);
+						measure2sum+=*(measureArray+2);
+						measure2squaredsum+=pow(*(measureArray+2),2);
+						measure3sum+=*(measureArray+3);
+						measure3squaredsum+=pow(*(measureArray+3),2);
+						measure4sum+=*(measureArray+4);
+						measure4squaredsum+=pow(*(measureArray+4),2);
+						iterations++;
+
+		}
+	}
+	}
+		myfile.close();
+} else {
+		cout << "Unable to open file";
+	}
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
+
 	}
 
 
-	a.pam(b,k); // run PAM
 
-	ofstream myfile2 (outputClustersFile);
 
-	if (myfile2.is_open()){
-		for (int i = 0; i < snpsNum; i++){
-			myfile2 << i << "," << a.cluster_ids[i] << std::endl;
+void runSearchClusterFilterIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
+		int c, int istart, int iend, int jstart, int jend, int kstart,int kend,
+		bool printall, double assocLevel, const std::vector<int> &clusterIDs, const std::vector<int> &clusterSizes){
+
+	// initialise variables
+	double measure0sum = 0.0;
+	double measure0squaredsum = 0.0;
+	double measure1sum = 0.0;
+	double measure1squaredsum = 0.0;
+	double measure2sum = 0.0;
+	double measure2squaredsum = 0.0;
+	double measure3sum = 0.0;
+	double measure3squaredsum = 0.0;
+	double measure4sum = 0.0;
+	double measure4squaredsum = 0.0;
+	int iterations = 0;
+
+	int numClusters = (clusterSizes).size();
+	int iUpperLim = getIndexNextCluster(numClusters - 3,clusterIDs,clusterSizes,numClusters,nvars); // upper limit i exclusive
+	int jUpperLim = getIndexNextCluster(numClusters - 2,clusterIDs,clusterSizes,numClusters,nvars); // upper limit j exclusive
+	int iTrueUpperLim = min(iUpperLim,iend);
+	int jTrueUpperLim = min(jUpperLim,jend);
+	int kTrueUpperLim = min(nvars-2,kend);
+
+
+
+
+	std::vector<int> d = readData(filename, nsamples, nvars);
+	// read in the array of indexes through filenameIndexes
+
+	const int* p = d.data();
+
+	int v[4] = {-1,-1,-1,-1};
+	v[0] = nvars-1;
+
+	double Hcl = entropyFast(p,nsamples,nvars,c,v);
+	v[0] = -1;
+
+	ofstream myfile (outputFilename.c_str());
+
+	bool Done = false;
+
+	if (myfile.is_open()){
+
+	int jstartreal;
+	int kstartreal;
+
+	for (int i = istart; (i <= iend) && !Done; i++){
+		v[0] = i;
+		double Hp1 = entropyFast(p,nsamples,nvars,c,v);
+		v[1] = nvars-1;
+		double Hp1cl = entropyFast(p,nsamples,nvars,c,v);
+
+		v[0] = -1;
+		v[1] = -1;
+
+		if (i == istart){
+			if(clusterIDs[i] == clusterIDs[jstart]){
+
+				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
+			} else {
+				jstartreal = jstart;
+			}
+
+
+		} else {
+
+
+			if(clusterIDs[i] == clusterIDs[i+1]){
+				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
+
+			} else{
+				jstartreal = i+1;
+			}
+
 		}
 
-		myfile2.close();
-		}
 
-}
+		for (int j = jstartreal; (j < jend) && !Done; j++){
+
+					v[0] = j;
+					double Hp2 = entropyFast(p,nsamples,nvars,c,v);
+					v[0] = -1;
+
+					if (j == jstart){
+						if(clusterIDs[j] == clusterIDs[kstart]){
+
+
+							kstartreal = getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
+						} else {
+							kstartreal = kstart;
+						}
+					} else {
+
+							if(clusterIDs[j] == clusterIDs[j+1]){
+							kstartreal=getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
+
+						} else{
+							kstartreal = j+1;
+						}
+
+					}
+
+		for(int k = kstartreal; (k < nvars-1) && !Done; k++){
+
+
+
+
+						double *measureArray = calculateMeasures(i, Hp1, j, Hp2, k, nvars-1, p,
+								nsamples, nvars, c, Hcl, Hp1cl);
+
+						if (printall) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						} else if (*(measureArray + 0) > assocLevel * Hcl) {
+							myfile << "(" << i << "," << j << "," << k << "): "
+									<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
+									<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
+									<< *(measureArray + 4) << "\n";
+						}
+
+
+						// TODO: add overflow protection
+						measure0sum+=*(measureArray+0);
+						measure0squaredsum+=pow(*(measureArray+0),2);
+						measure1sum+=*(measureArray+1);
+						measure1squaredsum+=pow(*(measureArray+1),2);
+						measure2sum+=*(measureArray+2);
+						measure2squaredsum+=pow(*(measureArray+2),2);
+						measure3sum+=*(measureArray+3);
+						measure3squaredsum+=pow(*(measureArray+3),2);
+						measure4sum+=*(measureArray+4);
+						measure4squaredsum+=pow(*(measureArray+4),2);
+						iterations++;
+
+
+
+						Done = (i >= iTrueUpperLim) && (j >= jTrueUpperLim) && (k >= kTrueUpperLim);
+
+		}
+	}
+	}
+		myfile.close();
+} else {
+		cout << "Unable to open file";
+	}
+	writeStatistics(measure0sum, measure0squaredsum, measure1sum,
+			measure1squaredsum, measure2sum, measure2squaredsum, measure3sum,
+			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
+
+	}
+
 
 

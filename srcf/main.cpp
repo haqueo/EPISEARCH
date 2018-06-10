@@ -9,7 +9,12 @@
 #include <map>
 #include <sstream>
 #include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "/opt/local/lib/gcc7/gcc/x86_64-apple-darwin17/7.3.0/include/omp.h"
 
+
+#include <stdio.h>
 #include "searchTools/searchTools.h"
 
 #include "utilities/utilities.h"
@@ -23,7 +28,7 @@ int main(int argc, char* argv[]) {
 	if (argc < 6){
 		std::cerr << "Usage: " << argv[0] << "-inputfile -outputfile -nsamples "
 				"-nvars -nindex -indexfile -printall -assoclevel -VIfilter -VIfilterfile -epsilon"
-				" -clusterfilter -clusterfilterIDsFile -clusterfilterSizeFile -numClusters" <<
+				" -clusterfilter -clusterfilterIDsFile -clusterfilterSizeFile -numClusters -numThread" <<
 				std::endl;
 		return 1;
 	}
@@ -45,6 +50,7 @@ int main(int argc, char* argv[]) {
 	std::string clusterFilterIDsFile = "";
 	std::string clusterFilterSizeFile = "";
 	int numClusters = -1;
+	int numThread = 1;
 
 	cout << "argc is " << argc << std::endl;
 
@@ -219,7 +225,17 @@ int main(int argc, char* argv[]) {
 					std::cerr << "-numClusters option requires one argument" << std::endl;
 					return 1;
 				}
-			}else{
+			} else if (std::string(argv[i]) == "-numThread"){
+				if (i+1 < argc){
+					std::istringstream iss(argv[i+1]);
+					iss >> numThread;
+					i++;
+
+				} else {
+					std::cerr << "-numThread option requires one argument" << std::endl;
+					return 1;
+				}
+			} else {
 			// error, none of the above.
 				std::cerr << std::string(argv[i]) << std::endl;
 			std::cerr << "input not in valid format";
@@ -229,69 +245,49 @@ int main(int argc, char* argv[]) {
 
 	clock_t t1,t2;
 	t1=clock();
-	    //code goes here
+
 	std::vector<int> limits;
 	if (nindex != -1000){
-
 		limits = readIndices(indexfile,nindex);
-
 	}
 
-	if ((nindex == -1000) && (VIfilter == false) && (clusterFilter == false)){
-		// no index pair given. Running full search.
-		runFullSearch(inputfile, outputfile, nsamples, nvars, 0,printall,assoclevel);
-	} else if (VIfilter == false && clusterFilter == false) {
-		// use nindex to find the 6 indices
-		std::vector<int> limits = readIndices(indexfile,nindex);
-		cout << "limits vector is" << std::endl;
-		for(int i=0; i<6; ++i){
-		  std::cout << limits[i] << ' ';
+	if (nindex != -1000){
+		// use indexed functions
+		if (VIfilter){
+			std::vector<double> viDists = readviDistances(VIfilterfile,nvars);
+			runSearchVIFilterIndexes(inputfile, outputfile, nsamples, nvars, 0, limits[0],limits[3],limits[1],limits[4],limits[2],limits[5],epsilon,printall, assoclevel, viDists);
+
+		} else if (clusterFilter){
+			std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,numClusters);
+			std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile,numClusters);
+			runSearchClusterFilterIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
+									limits[2],limits[5],printall,assoclevel,clusterIDs,clusterSizes);
+		} else {
+			runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
+							limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
 		}
-		// then run full search indexes
-		runFullSearchIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],
-				limits[3],limits[1],limits[4],limits[2],limits[5],printall,assoclevel);
-	} else if (VIfilter){
-		cout << "limits vector is" << std::endl;
-			for(int i=0; i<6; ++i){
-			  std::cout << limits[i] << ' ';
-			}
+	} else {
+		// use parallelised functions
 
-		cout << "I got to the correct branch" << std::endl;
-		std::vector<double> viDists = readviDistances(VIfilterfile,nvars);
-		cout << "I managed to read in the distances" << std::endl;
-		cout <<" viDists[10] is "<< viDists[10] << std::endl;
-		runSearchVIFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
-				limits[2],limits[5],epsilon,printall,assoclevel,viDists);
+		if (VIfilter){
+			std::vector<double> viDists = readviDistances(VIfilterfile,nvars);
+			runSearchVIFilter(inputfile,outputfile,nsamples,nvars,0,epsilon,printall,assoclevel,viDists,numThread);
+		} else if (clusterFilter){
+			std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,numClusters);
+			std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile,numClusters);
+			runSearchClusterFilter(inputfile,outputfile,nsamples,nvars,0,printall,assoclevel,clusterIDs,clusterSizes,numThread);
+		} else {
+			runFullSearch(inputfile,outputfile,nsamples,nvars,0,printall,assoclevel,numThread);
+		}
 
-	} else if (clusterFilter){
-
-		cout << "I got here, cluster filter section"<< std::endl;
-
-		std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,numClusters);
-		std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile,numClusters);
-
-		cout << "clusterIDs[10] is " << clusterIDs[10] << std::endl;
-		cout << "clusterSizes[10] " << clusterSizes[10] << std::endl;
-
-		cout << "limits vector is" << std::endl;
-					for(int i=0; i<6; ++i){
-					  std::cout << limits[i] << ' ';
-					}
-
-		runSearchClusterFilter(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
-						limits[2],limits[5],printall,assoclevel,clusterIDs,clusterSizes);
 	}
+
 	t2=clock();
 	float diff ((float)t2-(float)t1);
 	float seconds = diff / CLOCKS_PER_SEC;
 
 	ofstream myfile ("statistics.txt");
 
-
-	//cout << "running PAM now" << std::endl;
-
-	//runPAM(inputfile,"clustersMoldNew2.txt",nsamples,nvars,200);
-//
 	if (myfile.is_open()){
 		myfile << "time taken: "<< seconds << " s";
 		myfile.close();

@@ -1,3 +1,11 @@
+//============================================================================
+// Name        : entropy.cpp
+// Author      : All functions here except entropyFast were created by
+// Patrick E. Meyer, as part of the 'infotheo' R package. Available at:
+// https://cran.r-project.org/web/packages/infotheo/
+// Description : The functions to compute the base entropies
+//============================================================================
+
 #include <iostream>
 //using namespace std;
 #include <algorithm>
@@ -60,7 +68,10 @@ double entropy_shrink(std::map< std::vector<int> ,int > frequencies, int nb_samp
         return entropy_dirichlet(frequencies, nb_samples, beta);
       }
 }
-
+/** Rather than iterating through a vector the length of the entire dataset
+ * to check which entropies to compute, simply take an input vnew of length
+ * 4. We remove extra checks, just need a frequency count.
+ * **/
 double entropyFast(const int *d, int nsamples, int nvars, int c,int *vnew){
 
 // H(d) using estimator c

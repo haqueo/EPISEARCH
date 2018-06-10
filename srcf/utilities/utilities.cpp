@@ -1,9 +1,10 @@
-/*
- * utilities.cpp
- *
- *  Created on: 6 Jun 2018
- *      Author: Omar
- */
+//============================================================================
+// Name        : utilities.cpp
+// Author      : Omar Haque
+// Version     : 2.0
+// Copyright   : ECL-2.0
+// Description : The helper functions to compute the searches
+//============================================================================
 #include <iostream>
 //using namespace std;
 #include <algorithm>
@@ -179,19 +180,3 @@ void writeStatistics(double measure0sum, double measure0squaredsum,
 		myfile2.close();
 	}
 }
-
-void printMeasures(bool printall, const ofstream& myfile, int i, int j, int k,
-		double assocLevel, double Hcl, double* measureArray) {
-	if (printall) {
-		myfile << "(" << i << "," << j << "," << k << "): "
-				<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
-				<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
-				<< *(measureArray + 4) << "\n";
-	} else if (*(measureArray + 0) > assocLevel * Hcl) {
-		myfile << "(" << i << "," << j << "," << k << "): "
-				<< *(measureArray + 0) << "	" << *(measureArray + 1) << "	"
-				<< *(measureArray + 2) << "	" << *(measureArray + 3) << "	"
-				<< *(measureArray + 4) << "\n";
-	}
-}
-
