@@ -395,9 +395,6 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 
 
 	if (myfile.is_open()){
-
-	int jstartreal;
-	int kstartcandidate;
 	int kstartreal;
 
 	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v,bin,kstartreal) num_threads(numThread)
@@ -613,7 +610,7 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 	double measure4squaredsum = 0.0;
 	int iterations = 0;
 
-	int numClusters = (clusterSizes).size();
+
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -633,6 +630,16 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 	int jstartreal;
 	int kstartreal;
 
+
+	std::vector<int> nextClusterIndices(clusterSizes.size());
+	int sum = 0;
+	for (int i = 0; i < nextClusterIndices.size(); i++){
+		sum+=clusterSizes[i];
+		nextClusterIndices[i] = sum;
+
+	}
+
+
 	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v,jstartreal,kstartreal) num_threads(numThread)
 	for (int i = 0; i < nvars-3; i++){
 		v[0] = i;
@@ -643,12 +650,8 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 		v[0] = -1;
 		v[1] = -1;
 
-		if(clusterIDs[i] == clusterIDs[i+1]){
-			jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
 
-		} else{
-			jstartreal = i+1;
-		}
+		jstartreal = nextClusterIndices[clusterIDs[i]];
 
 		for (int j = jstartreal; j < nvars-2; j++){
 
@@ -658,16 +661,13 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 
 
 
-			if(clusterIDs[j] == clusterIDs[j+1]){
-					kstartreal=getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
+			kstartreal = nextClusterIndices[clusterIDs[j]];
 
-				} else{
-					kstartreal = j+1;
-				}
 
 
 
 		for(int k = kstartreal; k < nvars-1; k++){
+
 
 
 
@@ -741,7 +741,13 @@ void runSearchClusterFilterIndexes(std::string filename, std::string outputFilen
 	int kTrueUpperLim = min(nvars-2,kend);
 
 
+	std::vector<int> nextClusterIndices(clusterSizes.size());
+	int sum = 0;
+	for (int i = 0; i < nextClusterIndices.size(); i++){
+		sum+=clusterSizes[i];
+		nextClusterIndices[i] = sum;
 
+	}
 
 	std::vector<int> d = readData(filename, nsamples, nvars);
 	// read in the array of indexes through filenameIndexes
@@ -773,23 +779,14 @@ void runSearchClusterFilterIndexes(std::string filename, std::string outputFilen
 		v[1] = -1;
 
 		if (i == istart){
-			if(clusterIDs[i] == clusterIDs[jstart]){
 
-				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
-			} else {
-				jstartreal = jstart;
-			}
+		jstartreal = max(nextClusterIndices[clusterIDs[i]],jstart);
 
 
 		} else {
 
+			jstartreal = nextClusterIndices[clusterIDs[i]];
 
-			if(clusterIDs[i] == clusterIDs[i+1]){
-				jstartreal = getIndexNextCluster(clusterIDs[i],clusterIDs,clusterSizes,numClusters,nvars);
-
-			} else{
-				jstartreal = i+1;
-			}
 
 		}
 
@@ -801,21 +798,12 @@ void runSearchClusterFilterIndexes(std::string filename, std::string outputFilen
 					v[0] = -1;
 
 					if (j == jstart){
-						if(clusterIDs[j] == clusterIDs[kstart]){
 
+						kstartreal = max(nextClusterIndices[j],kstart);
 
-							kstartreal = getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
-						} else {
-							kstartreal = kstart;
-						}
 					} else {
+						kstartreal = nextClusterIndices[j];
 
-							if(clusterIDs[j] == clusterIDs[j+1]){
-							kstartreal=getIndexNextCluster(clusterIDs[j],clusterIDs,clusterSizes,numClusters,nvars);
-
-						} else{
-							kstartreal = j+1;
-						}
 
 					}
 

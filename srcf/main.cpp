@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
 			runSearchVIFilterIndexes(inputfile, outputfile, nsamples, nvars, 0, limits[0],limits[3],limits[1],limits[4],limits[2],limits[5],epsilon,printall, assoclevel, viDists);
 
 		} else if (clusterFilter){
-			std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,numClusters);
+			std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,nvars);
 			std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile,numClusters);
 			runSearchClusterFilterIndexes(inputfile,outputfile,nsamples,nvars,0,limits[0],limits[3],limits[1],limits[4],
 									limits[2],limits[5],printall,assoclevel,clusterIDs,clusterSizes);
@@ -273,7 +273,8 @@ int main(int argc, char* argv[]) {
 			std::vector<double> viDists = readviDistances(VIfilterfile,nvars);
 			runSearchVIFilter(inputfile,outputfile,nsamples,nvars,0,epsilon,printall,assoclevel,viDists,numThread);
 		} else if (clusterFilter){
-			std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,numClusters);
+			std::vector<int> clusterIDs = readClusterIDs(clusterFilterIDsFile,nvars);
+
 			std::vector<int> clusterSizes = readClusterSizes(clusterFilterSizeFile,numClusters);
 			runSearchClusterFilter(inputfile,outputfile,nsamples,nvars,0,printall,assoclevel,clusterIDs,clusterSizes,numThread);
 		} else {
