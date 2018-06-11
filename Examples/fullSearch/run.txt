@@ -1,6 +1,9 @@
 # These files were created using the RProcessing.R script in EPISEARCH/Examples/RProcessing
 
+# STEP 1 - Install the EPISEARCH.exe file for your OS from https://sourceforge.net/projects/episearch/files/, and copy it into this directory. Or, change the fi
+rst line in the below code to point to where you've installed it.
+
 # This code will run a search through the dataset via the VI filter.
 # The only SNPs tested will be those for which VI(G1,G2) + VI(G1,G3) + VI(G2,G3) > epsilon
 
-../../Release/EPISEARCH -inputfile ./genetic.txt -outputfile ./outputfile.txt -nsamples 300 -nvars 100 -printall y
+./EPISEARCH -inputfile ./genetic.txt -outputfile ./outputfile.txt -nsamples 300 -nvars 100 -printall y

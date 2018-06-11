@@ -1,7 +1,10 @@
 # The genetic dataset here was created using EPISEARCH/Examples/RProcessing/preprocessing.R
 # The indexing file was created using the Python script at EPISEARCH/srcf/findIndices.py
 
+# STEP 1 - Install the EPISEARCH.exe file for your OS from https://sourceforge.net/projects/episearch/files/, and copy it into this directory. Or, change the fi
+rst line in the below code to point to where you've installed it.
+
 #The following code will run through the indices in the 4th line of the index file. That is,
 # i,j,k = (6,48,54) to  (9,17,53). This is useful for array jobs since we can just set the
 # -ndindex option via an environment variable to iterate through the whole set.
-../../Release/EPISEARCH -inputfile ./genetic.txt -outputfile ./outputfile.txt -nsamples 300 -nvars 100 -nindex 4 -indexfile ./indexes.txt -printall y -assoclevel 0.01
+./EPISEARCH -inputfile ./genetic.txt -outputfile ./outputfile.txt -nsamples 300 -nvars 100 -nindex 4 -indexfile ./indexes.txt -printall y -assoclevel 0.01

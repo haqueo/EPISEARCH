@@ -1,6 +1,7 @@
 # These files were created using the RProcessing.R script in EPISEARCH/Examples/RProcessing
 
+# STEP 1 - Install the EPISEARCH.exe file for your OS from https://sourceforge.net/projects/episearch/files/, and copy it into this directory. Or, change the first line in the below code to point to where you've installed it.
 
 # This code will run a search through the dataset via the cluster filter.
 # The only SNPs tested will be those that lie in different clusters
-../../Release/EPISEARCH -inputfile ./sortedclusterGenetic.txt -outputfile ./outputfileclust.txt -nsamples 300 -nvars 100 -printall y -clusterfilter y -clusterfilterIDsFile ./clusterIDs.txt -clusterfilterSizeFile ./clusterSizes.txt -numClusters 10
+./EPISEARCH -inputfile ./sortedclusterGenetic.txt -outputfile ./outputfileclust.txt -nsamples 300 -nvars 100 -printall y -clusterfilter y -clusterfilterIDsFile ./clusterIDs.txt -clusterfilterSizeFile ./clusterSizes.txt -numClusters 10

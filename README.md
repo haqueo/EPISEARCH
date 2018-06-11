@@ -4,7 +4,7 @@ EPISEARCH is a fast, high-performance C++ command line application to search for
 
 ## Binaries / Installation
 
-EPISEARCH can only be used as a command line tool. Binaries for Mac OS and Linux are available from: TODO
+EPISEARCH can only be used as a command line tool. Binaries for Mac OS and Linux are available from: https://sourceforge.net/projects/episearch/files/
 
 In order to build the program locally just run: `$make all`
 

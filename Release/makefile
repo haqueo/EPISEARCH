@@ -47,7 +47,7 @@ all: EPISEARCH
 EPISEARCH: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++ -fopenmp -o "EPISEARCH" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++  -o "EPISEARCH" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
