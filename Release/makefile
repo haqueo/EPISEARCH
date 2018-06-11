@@ -8,7 +8,10 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/subdir.mk
+-include srcf/utilities/subdir.mk
+-include srcf/searchTools/subdir.mk
+-include srcf/entropy/subdir.mk
+-include srcf/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -38,19 +41,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: fullSearch
+all: EPISEARCH
 
 # Tool invocations
-fullSearch: $(OBJS) $(USER_OBJS)
+EPISEARCH: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++  -o "fullSearch" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++  -o "EPISEARCH" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(C_DEPS)$(CPP_DEPS) fullSearch
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(C_DEPS)$(CPP_DEPS) EPISEARCH
 	-@echo ' '
 
 .PHONY: all clean dependents
