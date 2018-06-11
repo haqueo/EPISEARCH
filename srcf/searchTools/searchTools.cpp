@@ -19,7 +19,6 @@ using namespace std;
 #include <sstream>
 #include <iterator>
 #include <math.h>
-#include <mpi.h>
 #include <stdio.h>
 #include "../entropy/entropy.h"
 #include "../utilities/utilities.h"
