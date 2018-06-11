@@ -358,6 +358,20 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 			measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 }
 
+/**
+ * Compute epistatic measures using the VI filter. Only compute measures for triples such that
+ * VI[i] + VI[j] + VI[k] > epsilon
+ *
+ * @param filename The input file
+ * @param outputFilename The output file name
+ * @param nsamples number of samples (rows) in the data
+ * @param nvars number of variables (columns) INCLUDING phenotype. nvars = #snps+1
+ * @param c estimator used. 0 is empirical entropy
+ * @param printall denote whether to print all the snps you come across
+ * @param assocLevel if printall is false, only print if I{*} > H(cl) * assocLevel
+ * @param viDists vector of distances to the phenotype, assumed to be sorted increasing
+ * @param numThreads to parallelise over i
+ */
 void runSearchVIFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c,double epsilon,bool printall, double assocLevel, std::vector<double> &viDists,
 		int numThread = 1){
@@ -464,6 +478,26 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 				measure3squaredsum, measure4sum, measure4squaredsum, iterations);
 	}
 
+/**
+ * Compute epistatic measures using the VI filter. Only compute measures for triples such that
+ * VI[i] + VI[j] + VI[k] > epsilon. Only compute over specified range of indexes
+ *
+ * @param filename The input file
+ * @param outputFilename The output file name
+ * @param nsamples number of samples (rows) in the data
+ * @param nvars number of variables (columns) INCLUDING phenotype. nvars = #snps+1
+ * @param c estimator used. 0 is empirical entropy
+ * @param istart The index i to start at, i.e. (istart,jstart,kstart) - inclusive
+ * @param iend The index i to end at, i.e. (iend,jend,kend) - inclusive
+ * @param jstart The index j to start at, i.e. (istart,jstart,kstart) - inclusive
+ * @param jend The index j to end at, i.e. (iend,jend,kend) - inclusive
+ * @param kstart The index k to start at, i.e. (istart,jstart,kstart) - inclusive
+ * @param kend The index k to end at, i.e. (iend,jend,kend) - inclusive
+ * @param printall denote whether to print all the snps you come across
+ * @param assocLevel if printall is false, only print if I{*} > H(cl) * assocLevel
+ * @param viDists vector of distances to the phenotype, assumed to be sorted increasing
+ * @param numThreads to parallelise over i
+ */
 void runSearchVIFilterIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend, double epsilon,
 		bool printall, double assocLevel, std::vector<double> &viDists){
@@ -592,7 +626,21 @@ void runSearchVIFilterIndexes(std::string filename, std::string outputFilename, 
 
 
 
-
+/**
+ * Compute epistatic measures using the Cluster filter. Only compute measures for triples such that
+ * clusterID[i]!=clusterID[j]!=clusterID[k]
+ *
+ * @param filename The input file
+ * @param outputFilename The output file name
+ * @param nsamples Number of samples (rows) in the data
+ * @param nvars Number of variables (columns) INCLUDING phenotype. nvars = #snps+1
+ * @param c Estimator used. 0 is empirical entropy
+ * @param printall Denote whether to print all the snps you come across
+ * @param assocLevel If printall is false, only print if I{*} > H(cl) * assocLevel
+ * @param clusterIDs Vector containing the cluster IDs for all the SNPs
+ * @param clusterSizes Vector of length numClusters containing the size of all clusters
+ * @param numThread The number of threads to parallelise over. Defaults to 1.
+ */
 void runSearchClusterFilter(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, bool printall, double assocLevel, const std::vector<int> &clusterIDs,
 		const std::vector<int> &clusterSizes, int numThread){
@@ -715,7 +763,28 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 
 
 
-
+/**
+ * Compute epistatic measures using the Cluster filter. Only compute measures for triples such that
+ * clusterID[i]!=clusterID[j]!=clusterID[k]
+ *
+ * @param filename The input file
+ * @param outputFilename The output file name
+ * @param nsamples Number of samples (rows) in the data
+ * @param nvars Number of variables (columns) INCLUDING phenotype. nvars = #snps+1
+ * @param c Estimator used. 0 is empirical entropy
+ * @param istart The index i to start at, i.e. (istart,jstart,kstart) - inclusive
+ * @param iend The index i to end at, i.e. (iend,jend,kend) - inclusive
+ * @param jstart The index j to start at, i.e. (istart,jstart,kstart) - inclusive
+ * @param jend The index j to end at, i.e. (iend,jend,kend) - inclusive
+ * @param kstart The index k to start at, i.e. (istart,jstart,kstart) - inclusive
+ * @param kend The index k to end at, i.e. (iend,jend,kend) - inclusive
+ *
+ * @param printall Denote whether to print all the snps you come across
+ * @param assocLevel If printall is false, only print if I{*} > H(cl) * assocLevel
+ * @param clusterIDs Vector containing the cluster IDs for all the SNPs
+ * @param clusterSizes Vector of length numClusters containing the size of all clusters
+ * @param numThread The number of threads to parallelise over. Defaults to 1.
+ */
 void runSearchClusterFilterIndexes(std::string filename, std::string outputFilename, int nsamples, int nvars,
 		int c, int istart, int iend, int jstart, int jend, int kstart,int kend,
 		bool printall, double assocLevel, const std::vector<int> &clusterIDs, const std::vector<int> &clusterSizes){
