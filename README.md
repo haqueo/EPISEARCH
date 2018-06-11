@@ -14,7 +14,7 @@ Requirements are C++11 and OpenMP
 
 To see the format for the required input files, see the examples folder.
 
-Basic usage is: $ ./EPISEARCH [OPTIONS]
+Basic usage is: `$ ./EPISEARCH [OPTIONS]`
 
 The options are given here:
 
