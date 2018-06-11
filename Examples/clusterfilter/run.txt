@@ -1,0 +1,6 @@
+# These files were created using the RProcessing.R script in EPISEARCH/Examples/RProcessing
+
+
+# This code will run a search through the dataset via the cluster filter.
+# The only SNPs tested will be those that lie in different clusters
+../../Release/EPISEARCH -inputfile ./sortedclusterGenetic.txt -outputfile ./outputfileclust.txt -nsamples 300 -nvars 100 -printall y -clusterfilter y -clusterfilterIDsFile ./clusterIDs.txt -clusterfilterSizeFile ./clusterSizes.txt -numClusters 10

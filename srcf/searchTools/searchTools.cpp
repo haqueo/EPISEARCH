@@ -172,6 +172,8 @@ void runFullSearch(std::string filename, std::string outputFilename, int nsample
 
 	if (myfile.is_open()){
 
+		myfile << "SNPS: | IGStrict | IGAlt | IGEasy | VIp | VIc " <<std::endl;
+
 	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v) num_threads(numThread)
 	for (int i = 0; i < nvars-3;i++){
 		v[0] = i;
@@ -283,6 +285,7 @@ void runFullSearchIndexes(std::string filename, std::string outputFilename, int 
 	bool Done = false;
 
 	if (myfile.is_open()){
+		myfile << "SNPS: | IGStrict | IGAlt | IGEasy | VIp | VIc " <<std::endl;
 
 	int jstartreal;
 	int kstartreal;
@@ -409,6 +412,7 @@ void runSearchVIFilter(std::string filename, std::string outputFilename, int nsa
 
 
 	if (myfile.is_open()){
+		myfile << "SNPS: | IGStrict | IGAlt | IGEasy | VIp | VIc " <<std::endl;
 	int kstartreal;
 
 	#pragma omp parallel for reduction(+:measure0sum,measure0squaredsum,measure1sum,measure1squaredsum,measure2sum,measure2squaredsum,measure3sum,measure3squaredsum,measure4sum,measure4squaredsum) private(v,bin,kstartreal) num_threads(numThread)
@@ -535,6 +539,7 @@ void runSearchVIFilterIndexes(std::string filename, std::string outputFilename, 
 	bool Done = false;
 
 	if (myfile.is_open()){
+		myfile << "SNPS: | IGStrict | IGAlt | IGEasy | VIp | VIc " <<std::endl;
 
 	int jstartreal;
 	int kstartcandidate;
@@ -674,6 +679,7 @@ void runSearchClusterFilter(std::string filename, std::string outputFilename, in
 	ofstream myfile (outputFilename.c_str());
 
 	if (myfile.is_open()){
+		myfile << "SNPS: | IGStrict | IGAlt | IGEasy | VIp | VIc " <<std::endl;
 
 	int jstartreal;
 	int kstartreal;
@@ -834,6 +840,7 @@ void runSearchClusterFilterIndexes(std::string filename, std::string outputFilen
 	bool Done = false;
 
 	if (myfile.is_open()){
+		myfile << "SNPS: | IGStrict | IGAlt | IGEasy | VIp | VIc " <<std::endl;
 
 	int jstartreal;
 	int kstartreal;

@@ -1,0 +1,6 @@
+# These files were created using the RProcessing.R script in EPISEARCH/Examples/RProcessing
+
+# This code will run a search through the dataset via the VI filter.
+# The only SNPs tested will be those for which VI(G1,G2) + VI(G1,G3) + VI(G2,G3) > epsilon
+
+../../Release/EPISEARCH -inputfile ./genetic.txt -outputfile ./outputfile.txt -nsamples 300 -nvars 100 -printall y

@@ -1,0 +1,11 @@
+IGStrictSum -1016.24
+IGStrictSquaredSum 18.7466
+IGAltSum: -396.059
+IGAltSquaredSum 10.7925
+IGSum 9396.8
+IGSquaredSum 851.239
+VIpSum 400041
+VIpSquaredSum 1.4378e+06
+VIcSum 399946
+VIcSquaredSum 1.43698e+06
+iterations: 111334
