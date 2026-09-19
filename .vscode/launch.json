@@ -1,0 +1,65 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Stage 1. Run this and it will stop where it dies, with the call stack
+      // and every local in scope. Read the frames from the top down.
+      "type": "lldb",
+      "request": "launch",
+      "name": "episearch · dev · full search",
+      "program": "${workspaceFolder}/build/dev/episearch",
+      "args": [
+        "-inputfile", "data.txt",
+        "-outputfile", "out.txt",
+        "-nsamples", "300",
+        "-nvars", "41",
+        "-printall", "n",
+        "-assoclevel", "0.05",
+        "-numThread", "1"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "episearch · asan+ubsan",
+      "program": "${workspaceFolder}/build/asan/episearch",
+      "args": [
+        "-inputfile", "data.txt",
+        "-outputfile", "out.txt",
+        "-nsamples", "300",
+        "-nvars", "41",
+        "-printall", "n",
+        "-assoclevel", "0.05",
+        "-numThread", "1"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": { "ASAN_OPTIONS": "detect_leaks=0:abort_on_error=1" }
+    },
+    {
+      // Stage 4. Same input, four threads.
+      "type": "lldb",
+      "request": "launch",
+      "name": "episearch · dev · 4 threads",
+      "program": "${workspaceFolder}/build/dev/episearch",
+      "args": [
+        "-inputfile", "data.txt",
+        "-outputfile", "out4.txt",
+        "-nsamples", "300",
+        "-nvars", "41",
+        "-printall", "n",
+        "-assoclevel", "0.05",
+        "-numThread", "4"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "episearch_tests",
+      "program": "${workspaceFolder}/build/dev/tests/episearch_tests",
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

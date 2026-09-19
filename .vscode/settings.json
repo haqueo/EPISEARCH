@@ -1,0 +1,36 @@
+{
+  // clangd is the language server, not Microsoft's cpptools IntelliSense.
+  // It reads build/dev/compile_commands.json, which CMake writes for you,
+  // so it knows the exact flags each file is compiled with - including the
+  // -std=c++20 and the warning set. That is why it can be trusted.
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=never",
+    "--completion-style=detailed",
+    "--compile-commands-dir=${workspaceFolder}/build/dev"
+  ],
+
+  // Running both language servers at once gives you two sets of squiggles
+  // that disagree with each other. Pick one.
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  "cmake.useCMakePresets": "always",
+  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true,
+    "editor.rulers": [100]
+  },
+
+  "files.associations": {
+    "*.h": "cpp"
+  },
+
+  "files.exclude": {
+    "**/build": true,
+    "**/Debug": true,
+    "**/Release": true
+  }
+}

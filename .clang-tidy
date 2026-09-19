@@ -1,0 +1,37 @@
+# Deliberately narrow. A full clang-tidy run on the current code produces
+# hundreds of hits and tells you nothing. These are the checks that map onto
+# what someone will actually ask you about in an interview.
+Checks: >
+  -*,
+  bugprone-*,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  cppcoreguidelines-owning-memory,
+  cppcoreguidelines-init-variables,
+  cppcoreguidelines-prefer-member-initializer,
+  cppcoreguidelines-rule-of-five,
+  cppcoreguidelines-special-member-functions,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-using,
+  modernize-loop-convert,
+  modernize-pass-by-value,
+  modernize-return-braced-init-list,
+  performance-*,
+  readability-identifier-naming,
+  readability-const-return-type,
+  readability-redundant-*,
+  -bugprone-easily-swappable-parameters
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'srcf/.*'
+
+CheckOptions:
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: _

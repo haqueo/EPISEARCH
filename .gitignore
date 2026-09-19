@@ -1,2 +1,8 @@
 
 /Debug/
+
+build/
+_deps/
+compile_commands.json
+NOTES.md.bak
+*.o
